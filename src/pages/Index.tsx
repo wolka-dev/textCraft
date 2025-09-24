@@ -9,63 +9,21 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-background">
       <Header />
       
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <h2 className="text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-                Transform Your Writing
-                <span className="block text-primary">With AI Precision</span>
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                Perfect your emails, messages, and documents with intelligent text enhancement. 
-                Choose your style, language, and let AI craft the perfect version.
-              </p>
-            </div>
-            
-            <div className="flex flex-wrap gap-4 text-sm">
-              <div className="flex items-center gap-2 text-primary">
-                <CheckCircle className="h-4 w-4" />
-                Multiple writing styles
-              </div>
-              <div className="flex items-center gap-2 text-primary">
-                <Globe className="h-4 w-4" />
-                Multi-language support
-              </div>
-              <div className="flex items-center gap-2 text-primary">
-                <Zap className="h-4 w-4" />
-                Instant results
-              </div>
-            </div>
-          </div>
-          
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-primary blur-3xl opacity-20 rounded-full"></div>
-            <img 
-              src={heroImage} 
-              alt="Text transformation illustration" 
-              className="relative z-10 w-full h-auto rounded-2xl shadow-large"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Main Tool */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="text-center mb-8">
-          <h3 className="text-2xl font-bold text-foreground mb-2">
-            Start Improving Your Text
-          </h3>
-          <p className="text-muted-foreground">
-            Enter your text, choose your style, and watch the magic happen
+      {/* Main Tool - First Priority */}
+      <section className="container mx-auto px-4 py-8">
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-bold text-foreground mb-2">
+            Transform Your Writing with AI
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Perfect your emails, messages, and documents. Choose your style, select your language, and let AI enhance your text instantly.
           </p>
         </div>
         
         <TextImprover />
       </section>
 
-      {/* Features */}
+      {/* Features Section */}
       <section className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-3 gap-6">
           <Card className="p-6 bg-gradient-card shadow-soft border-0 text-center">
@@ -97,6 +55,48 @@ const Index = () => {
               Get improved text in seconds, ready to copy and use
             </p>
           </Card>
+        </div>
+      </section>
+
+      {/* Hero Section - Now Secondary */}
+      <section className="container mx-auto px-4 py-12">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-3xl lg:text-4xl font-bold text-foreground leading-tight">
+                Why Choose
+                <span className="block text-primary">TextCraft?</span>
+              </h3>
+              <p className="text-lg text-muted-foreground">
+                Our AI understands context, tone, and purpose to deliver exactly what you need. 
+                Whether it's a professional email or a friendly message, we've got you covered.
+              </p>
+            </div>
+            
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex items-center gap-2 text-primary">
+                <CheckCircle className="h-4 w-4" />
+                Multiple writing styles
+              </div>
+              <div className="flex items-center gap-2 text-primary">
+                <Globe className="h-4 w-4" />
+                Multi-language support
+              </div>
+              <div className="flex items-center gap-2 text-primary">
+                <Zap className="h-4 w-4" />
+                Instant results
+              </div>
+            </div>
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-primary blur-3xl opacity-20 rounded-full"></div>
+            <img 
+              src={heroImage} 
+              alt="Text transformation illustration" 
+              className="relative z-10 w-full h-auto rounded-2xl shadow-large"
+            />
+          </div>
         </div>
       </section>
     </div>
