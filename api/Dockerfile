@@ -1,5 +1,6 @@
 # Build stage
-FROM golang:1.21-alpine AS builder
+# FROM golang:1.21-alpine AS builder
+FROM ghcr.io/library/golang:1.21-alpine
 
 # Set working directory
 WORKDIR /app
@@ -20,7 +21,9 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 # Final stage
-FROM alpine:latest
+# FROM alpine:latest
+FROM ghcr.io/library/alpine:latest
+
 
 # Install ca-certificates for HTTPS requests
 RUN apk --no-cache add ca-certificates
