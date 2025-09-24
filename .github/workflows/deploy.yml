@@ -50,5 +50,5 @@ jobs:
               --restart=always \
               --name textcraft-ui \
               --network textcraft-network \
-              -p 3000:80 \
+              -p 33000:80 \
               ${{ secrets.REGISTRY_URL }}/textcraft-ui:latest
