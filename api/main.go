@@ -1,14 +1,26 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
+)
+
+// Constants
+const (
+	ContentTypeJSON   = "application/json"
+	ContentTypeHeader = "Content-Type"
+	MaxWords          = 200
+	ThrottleDuration  = 5 * time.Second
 )
 
 // TextImprovementRequest represents the incoming request
@@ -34,6 +46,67 @@ type TextImprovementResponse struct {
 	ProcessingTime string `json:"processingTime"`
 }
 
+// GroqRequest represents the request format for Groq API
+type GroqRequest struct {
+	Messages []GroqMessage `json:"messages"`
+	Model    string        `json:"model"`
+	Stream   bool          `json:"stream"`
+}
+
+type GroqMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type GroqResponse struct {
+	Choices []GroqChoice `json:"choices"`
+}
+
+type GroqChoice struct {
+	Message GroqMessage `json:"message"`
+}
+
+// RateLimiter represents a simple rate limiter
+type RateLimiter struct {
+	lastRequest time.Time
+	mutex       sync.RWMutex
+}
+
+// Global rate limiter instance
+var rateLimiter = &RateLimiter{}
+
+// IsAllowed checks if a request is allowed based on rate limiting
+func (rl *RateLimiter) IsAllowed() bool {
+	rl.mutex.Lock()
+	defer rl.mutex.Unlock()
+
+	now := time.Now()
+	if now.Sub(rl.lastRequest) >= ThrottleDuration {
+		rl.lastRequest = now
+		return true
+	}
+	return false
+}
+
+// GetTimeUntilNextRequest returns the time until the next request is allowed
+func (rl *RateLimiter) GetTimeUntilNextRequest() time.Duration {
+	rl.mutex.RLock()
+	defer rl.mutex.RUnlock()
+
+	now := time.Now()
+	timeSinceLastRequest := now.Sub(rl.lastRequest)
+	if timeSinceLastRequest >= ThrottleDuration {
+		return 0
+	}
+	return ThrottleDuration - timeSinceLastRequest
+}
+
+// countWords counts the number of words in a text
+func countWords(text string) int {
+	words := strings.Fields(strings.TrimSpace(text))
+	return len(words)
+}
+
 // CORS middleware
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +127,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 // Text improvement endpoint that processes and improves text
 func improveTextHandler(w http.ResponseWriter, r *http.Request) {
 	// Set content type
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(ContentTypeHeader, ContentTypeJSON)
 
 	// Parse request body
 	var request TextImprovementRequest
@@ -71,6 +144,21 @@ func improveTextHandler(w http.ResponseWriter, r *http.Request) {
 
 	if request.Style == "" {
 		http.Error(w, "Style field is required", http.StatusBadRequest)
+		return
+	}
+
+	// Check rate limiting
+	if !rateLimiter.IsAllowed() {
+		timeUntilNext := rateLimiter.GetTimeUntilNextRequest()
+		w.Header().Set("Retry-After", fmt.Sprintf("%.0f", timeUntilNext.Seconds()))
+		http.Error(w, fmt.Sprintf("Rate limit exceeded. Please wait %.1f seconds before making another request.", timeUntilNext.Seconds()), http.StatusTooManyRequests)
+		return
+	}
+
+	// Check word limit
+	wordCount := countWords(request.Text)
+	if wordCount > MaxWords {
+		http.Error(w, fmt.Sprintf("Text exceeds word limit. Maximum allowed: %d words, provided: %d words", MaxWords, wordCount), http.StatusBadRequest)
 		return
 	}
 
@@ -100,71 +188,185 @@ func improveTextHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// processText simulates text improvement (replace with actual processing)
+// processText processes text using Groq AI with fallback
 func processText(request TextImprovementRequest) string {
-	// Get language display name
-	language := request.CustomLanguage
-	if language == "" {
-		switch request.Language {
-		case "en":
-			language = "English"
-		case "es":
-			language = "Spanish"
-		case "fr":
-			language = "French"
-		case "de":
-			language = "German"
-		case "it":
-			language = "Italian"
-		case "pt":
-			language = "Portuguese"
-		case "tr":
-			language = "Turkish"
-		default:
-			language = "English"
-		}
+	// Try Groq first
+	if improvedText, err := processWithGroq(request); err == nil {
+		return improvedText
 	}
 
-	// Get platform display name
-	platform := request.Platform
+	// Fallback to enhanced local processing
+	return processTextFallback(request)
+}
+
+// processWithGroq processes text using Groq API
+func processWithGroq(request TextImprovementRequest) (string, error) {
+	apiKey := os.Getenv("GROQ_API_KEY")
+	if apiKey == "" {
+		return "", fmt.Errorf("GROQ_API_KEY not set")
+	}
+
+	prompt := buildPrompt(request)
+
+	groqReq := GroqRequest{
+		Messages: []GroqMessage{
+			{
+				Role:    "system",
+				Content: "You are a professional text improvement assistant. Improve the given text according to the specified style, platform, and language requirements. Provide only the improved text without any explanations or formatting.",
+			},
+			{
+				Role:    "user",
+				Content: prompt,
+			},
+		},
+		Model:  "llama-3.1-8b-instant", // Fast model
+		Stream: false,
+	}
+
+	jsonData, err := json.Marshal(groqReq)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequest("POST", "https://api.groq.com/openai/v1/chat/completions", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set(ContentTypeHeader, ContentTypeJSON)
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("groq API error: %s", string(body))
+	}
+
+	var groqResp GroqResponse
+	if err := json.NewDecoder(resp.Body).Decode(&groqResp); err != nil {
+		return "", err
+	}
+
+	if len(groqResp.Choices) == 0 {
+		return "", fmt.Errorf("no response from Groq")
+	}
+
+	return strings.TrimSpace(groqResp.Choices[0].Message.Content), nil
+}
+
+// buildPrompt creates a prompt for AI models
+func buildPrompt(request TextImprovementRequest) string {
+	language := getLanguageName(request.Language, request.CustomLanguage)
+	platform := getPlatformName(request.Platform)
+	style := getStyleName(request.Style)
+
+	prompt := fmt.Sprintf(`Improve the following text for %s platform in %s language. Style: %s.
+
+Original text: "%s"`, platform, language, style, request.Text)
+
+	if request.ExtraPrompt != "" {
+		prompt += fmt.Sprintf("\n\nAdditional instructions: %s", request.ExtraPrompt)
+	}
+
+	prompt += "\n\nProvide only the improved text without any explanations or formatting."
+	return prompt
+}
+
+// Helper functions for language, platform, and style mapping
+func getLanguageName(langCode, customLang string) string {
+	if customLang != "" {
+		return customLang
+	}
+
+	switch langCode {
+	case "en":
+		return "English"
+	case "es":
+		return "Spanish"
+	case "fr":
+		return "French"
+	case "de":
+		return "German"
+	case "it":
+		return "Italian"
+	case "pt":
+		return "Portuguese"
+	case "tr":
+		return "Turkish"
+	default:
+		return "English"
+	}
+}
+
+func getPlatformName(platform string) string {
 	switch platform {
 	case "email":
-		platform = "Email"
+		return "Email"
 	case "slack":
-		platform = "Slack"
+		return "Slack"
 	case "document":
-		platform = "Document"
+		return "Document"
 	case "social":
-		platform = "Social Media"
+		return "Social Media"
 	default:
-		platform = "General"
+		return "General"
 	}
+}
 
-	// Get style display name
-	style := request.Style
+func getStyleName(style string) string {
 	switch style {
 	case "typo-grammar":
-		style = "Typo/Grammar Fix"
+		return "Fix typos and grammar errors"
 	case "formal":
-		style = "Formal"
+		return "Make it formal and professional"
 	case "friendly":
-		style = "Friendly"
+		return "Make it friendly and warm"
 	case "casual":
-		style = "Casual"
+		return "Make it casual and conversational"
 	case "professional":
-		style = "Professional"
+		return "Make it professional and business-focused"
 	default:
-		style = "General"
+		return "Improve the text"
+	}
+}
+
+// processTextFallback provides enhanced fallback when AI services are unavailable
+func processTextFallback(request TextImprovementRequest) string {
+	language := getLanguageName(request.Language, request.CustomLanguage)
+	platform := getPlatformName(request.Platform)
+	style := getStyleName(request.Style)
+
+	// Basic text improvements
+	improvedText := request.Text
+
+	// Fix common typos and grammar
+	improvedText = strings.ReplaceAll(improvedText, " i ", " I ")
+	improvedText = strings.ReplaceAll(improvedText, " dont ", " don't ")
+	improvedText = strings.ReplaceAll(improvedText, " cant ", " can't ")
+	improvedText = strings.ReplaceAll(improvedText, " wont ", " won't ")
+	improvedText = strings.ReplaceAll(improvedText, " its ", " it's ")
+
+	// Capitalize first letter
+	if len(improvedText) > 0 {
+		improvedText = strings.ToUpper(string(improvedText[0])) + improvedText[1:]
 	}
 
-	// Create improved text (this is a placeholder - replace with actual AI processing)
-	improvedText := fmt.Sprintf("[%s VERSION - %s - %s]\n\n%s",
-		strings.ToUpper(style), language, platform, request.Text)
+	// Add context based on style
+	prefix := fmt.Sprintf("[%s VERSION - %s - %s]\n\n", strings.ToUpper(style), language, platform)
+	improvedText = prefix + improvedText
 
 	// Add extra prompt if provided
 	if request.ExtraPrompt != "" {
 		improvedText += fmt.Sprintf("\n\n[Note: %s]", request.ExtraPrompt)
 	}
+
+	improvedText += "\n\n[Note: This is a fallback response. For better results, set GROQ_API_KEY environment variable.]"
 
 	return improvedText
 }
@@ -181,7 +383,7 @@ func main() {
 
 	// Health check endpoint
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set(ContentTypeHeader, ContentTypeJSON)
 		json.NewEncoder(w).Encode(map[string]string{
 			"status":    "healthy",
 			"service":   "phrasing-craft-api",
