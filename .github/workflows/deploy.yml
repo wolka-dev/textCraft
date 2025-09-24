@@ -1,4 +1,4 @@
-name: Deploy Phrasing Craft to Server
+name: Deploy TextCraft to Server
 
 on:
   push:

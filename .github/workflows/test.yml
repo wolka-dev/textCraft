@@ -1,0 +1,29 @@
+name: Test Workflow
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Test step
+      run: |
+        echo "✅ Workflow is running!"
+        echo "Branch: ${{ github.ref_name }}"
+        echo "Event: ${{ github.event_name }}"
+        echo "Repository: ${{ github.repository }}"
+        
+    - name: List files
+      run: |
+        echo "📁 Project structure:"
+        find . -name "*.yml" -o -name "*.yaml" | head -10
+        echo "📄 Workflow files:"
+        ls -la .github/workflows/
