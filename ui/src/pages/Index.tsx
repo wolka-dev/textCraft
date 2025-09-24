@@ -51,21 +51,6 @@ const Index = () => {
             </div>
           </Card>
           
-          {/* Multi-Language */}
-          <Card className="group p-8 bg-gradient-card shadow-soft border-0 text-center hover:shadow-large transition-all duration-300 hover:-translate-y-1">
-            <div className="w-16 h-16 bg-gradient-primary rounded-2xl mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <Languages className="h-8 w-8 text-white" />
-            </div>
-            <h4 className="text-xl font-bold text-foreground mb-4">Multi-Language</h4>
-            <p className="text-muted-foreground leading-relaxed mb-4">
-              Support for 50+ languages with native-level understanding to help you communicate effectively with global audiences.
-            </p>
-            <div className="flex items-center justify-center gap-2 text-primary text-sm font-medium">
-              <Globe className="h-4 w-4" />
-              50+ languages supported
-            </div>
-          </Card>
-          
           {/* Instant Results */}
           <Card className="group p-8 bg-gradient-card shadow-soft border-0 text-center hover:shadow-large transition-all duration-300 hover:-translate-y-1">
             <div className="w-16 h-16 bg-gradient-primary rounded-2xl mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">

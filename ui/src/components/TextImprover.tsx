@@ -7,15 +7,23 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, Twitter } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const styles = [
-  { value: 'typo-grammar', label: 'Typo/Grammar', description: 'Fix errors and improve clarity' },
-  { value: 'formal', label: 'Formal', description: 'Professional and polished' },
-  { value: 'friendly', label: 'Friendly', description: 'Warm and approachable' },
-  { value: 'casual', label: 'Casual', description: 'Relaxed and conversational' },
-  { value: 'professional', label: 'Professional', description: 'Business-focused' },
+  { value: 'typo-grammar', label: 'Typo/Grammar', description: 'Fix errors and improve clarity', icon: CheckCircle },
+  { value: 'formal', label: 'Formal', description: 'Professional and polished', icon: Briefcase },
+  { value: 'friendly', label: 'Friendly', description: 'Warm and approachable', icon: Heart },
+  { value: 'casual', label: 'Casual', description: 'Relaxed and conversational', icon: Coffee },
+  { value: 'professional', label: 'Professional', description: 'Business-focused', icon: Building },
+];
+
+const platforms = [
+  { value: 'email', label: 'Email', icon: Mail },
+  { value: 'slack', label: 'Slack', icon: SlackIcon },
+  { value: 'document', label: 'Document', icon: FileText },
+  { value: 'social', label: 'Social Media', icon: Twitter },
 ];
 
 const languages = [
@@ -32,6 +40,7 @@ export const TextImprover = () => {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
   const [selectedStyle, setSelectedStyle] = useState('typo-grammar');
+  const [selectedPlatform, setSelectedPlatform] = useState('email');
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [customLanguage, setCustomLanguage] = useState('');
   const [extraPrompt, setExtraPrompt] = useState('');
@@ -79,7 +88,8 @@ export const TextImprover = () => {
     // Simulate text processing with better feedback
     setTimeout(() => {
       const languageDisplay = customLanguage || languages.find(l => l.value === selectedLanguage)?.label;
-      const processedText = `[${selectedStyle.toUpperCase()} VERSION - ${languageDisplay}]\n\n${inputText}`;
+      const platformDisplay = platforms.find(p => p.value === selectedPlatform)?.label;
+      const processedText = `[${selectedStyle.toUpperCase()} VERSION - ${languageDisplay} - ${platformDisplay}]\n\n${inputText}`;
       setOutputText(processedText);
       setIsProcessing(false);
       toast({
@@ -87,7 +97,7 @@ export const TextImprover = () => {
         description: "Your text has been transformed according to your preferences.",
       });
     }, 2000);
-  }, [inputText, selectedStyle, customLanguage, selectedLanguage]);
+  }, [inputText, selectedStyle, selectedPlatform, customLanguage, selectedLanguage]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -108,6 +118,7 @@ export const TextImprover = () => {
     setInputText('');
     setOutputText('');
     setSelectedStyle('typo-grammar');
+    setSelectedPlatform('email');
     setSelectedLanguage('en');
     setCustomLanguage('');
     setExtraPrompt('');
@@ -139,252 +150,307 @@ export const TextImprover = () => {
   const currentLanguage = languages.find(l => l.value === selectedLanguage);
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6">
-
-      {/* Controls */}
-      <Card className="p-6 bg-gradient-card shadow-soft border-0">
-        <div className="space-y-6">
-          {/* Writing Style Section */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              Writing Style
-              <span className="text-red-500">*</span>
-            </label>
-            <RadioGroup value={selectedStyle} onValueChange={setSelectedStyle} className="grid grid-cols-5 gap-3">
-              {styles.map((style) => (
-                <div key={style.value} className={`flex items-start space-x-3 p-4 rounded-xl border transition-all duration-200 cursor-pointer group ${
-                  selectedStyle === style.value 
-                    ? 'bg-primary/10 border-primary/50 shadow-sm' 
-                    : 'bg-background/30 border-border/50 hover:border-primary/30 hover:bg-background/50'
-                }`}>
-                  <RadioGroupItem value={style.value} id={style.value} className="mt-0.5" />
-                  <Label htmlFor={style.value} className="flex-1 cursor-pointer">
-                    <div className="font-medium text-foreground group-hover:text-primary transition-colors">{style.label}</div>
-                    <div className="text-xs text-muted-foreground mt-1">{style.description}</div>
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* Language and Instructions Row */}
-          <div className="grid md:grid-cols-2 gap-6">
+    <TooltipProvider delayDuration={0}>
+      <div className="w-full max-w-6xl mx-auto space-y-6">
+        {/* Controls */}
+        <Card className="p-6 bg-gradient-card shadow-soft border-0">
+          <div className="space-y-6">
+            {/* Writing Style Section */}
             <div className="space-y-3">
               <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                <Languages className="h-4 w-4 text-primary" />
-                Output Language
+                <Sparkles className="h-4 w-4 text-primary" />
+                Writing Style
+                <span className="text-red-500">*</span>
               </label>
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Select 
-                    value={selectedLanguage} 
-                    onValueChange={setSelectedLanguage}
-                    disabled={!!customLanguage.trim()}
-                  >
-                    <SelectTrigger className={`flex-1 transition-smooth ${
-                      customLanguage.trim() 
-                        ? 'bg-muted/30 border-muted-foreground/30 opacity-50' 
-                        : 'bg-background/50 border-border/50 hover:border-primary/30'
-                    }`}>
-                      <SelectValue>
-                        {currentLanguage && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{currentLanguage.flag}</span>
-                            <span>{currentLanguage.label}</span>
+              <div className="grid grid-cols-5 gap-3">
+                {styles.map((style) => {
+                  const IconComponent = style.icon;
+                  return (
+                    <Tooltip key={style.value}>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => setSelectedStyle(style.value)}
+                          className={`flex flex-col items-center space-y-2 p-3 rounded-lg border transition-all duration-200 cursor-pointer group ${
+                            selectedStyle === style.value 
+                              ? 'bg-primary/10 border-primary/50 shadow-sm' 
+                              : 'bg-background/30 border-border/50 hover:border-primary/30 hover:bg-background/50'
+                          }`}
+                        >
+                          <div className={`p-2 rounded-lg transition-colors ${
+                            selectedStyle === style.value 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary'
+                          }`}>
+                            <IconComponent className="h-4 w-4" />
                           </div>
-                        )}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {languages.map((language) => (
-                        <SelectItem key={language.value} value={language.value}>
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{language.flag}</span>
-                            <span>{language.label}</span>
+                          <div className="text-center">
+                            <div className="font-medium text-foreground group-hover:text-primary transition-colors text-sm">{style.label}</div>
                           </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="relative flex-1">
-                    <Input
-                      value={customLanguage}
-                      onChange={(e) => setCustomLanguage(e.target.value)}
-                      placeholder="Or enter custom language..."
-                      className={`transition-smooth ${
-                        customLanguage.trim()
-                          ? 'bg-primary/10 border-primary/50 shadow-sm'
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{style.description}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Language and Instructions Row */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <Languages className="h-4 w-4 text-primary" />
+                  Output Language
+                </label>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Select 
+                      value={selectedLanguage} 
+                      onValueChange={setSelectedLanguage}
+                      disabled={!!customLanguage.trim()}
+                    >
+                      <SelectTrigger className={`flex-1 transition-smooth ${
+                        customLanguage.trim() 
+                          ? 'bg-muted/30 border-muted-foreground/30 opacity-50' 
                           : 'bg-background/50 border-border/50 hover:border-primary/30'
-                      }`}
-                    />
-                    {customLanguage.trim() && (
-                      <div className="absolute -top-1 -right-1">
-                        <Badge variant="default" className="text-xs px-2 py-0.5 bg-primary text-primary-foreground">
-                          Active
-                        </Badge>
-                      </div>
-                    )}
+                      }`}>
+                        <SelectValue>
+                          {currentLanguage && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{currentLanguage.flag}</span>
+                              <span>{currentLanguage.label}</span>
+                            </div>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {languages.map((language) => (
+                          <SelectItem key={language.value} value={language.value}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{language.flag}</span>
+                              <span>{language.label}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="relative flex-1">
+                      <Input
+                        value={customLanguage}
+                        onChange={(e) => setCustomLanguage(e.target.value)}
+                        placeholder="Or enter custom language..."
+                        className={`transition-smooth ${
+                          customLanguage.trim()
+                            ? 'bg-primary/10 border-primary/50 shadow-sm'
+                            : 'bg-background/50 border-border/50 hover:border-primary/30'
+                        }`}
+                      />
+                      {customLanguage.trim() && (
+                        <div className="absolute -top-1 -right-1">
+                          <Badge variant="default" className="text-xs px-2 py-0.5 bg-primary text-primary-foreground">
+                            Active
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {customLanguage.trim() && (
+                    <p className="text-xs text-primary flex items-center gap-1">
+                      <Check className="h-3 w-3" />
+                      Custom language "{customLanguage}" will be used
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <Wand2 className="h-4 w-4 text-primary" />
+                  Extra Instructions
+                </label>
+                <Input
+                  value={extraPrompt}
+                  onChange={(e) => setExtraPrompt(e.target.value)}
+                  placeholder="Add specific instructions (e.g., 'make it shorter', 'add emojis')..."
+                  className="bg-background/50 border-border/50 hover:border-primary/30 transition-smooth"
+                />
+              </div>
+            </div>
+             
+            {/* Platform and Action Buttons Row */}
+            <div className="flex items-center gap-4">
+              {/* Platform Section */}
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-foreground flex items-center gap-2 whitespace-nowrap">
+                  <Target className="h-4 w-4 text-primary" />
+                  Platform:
+                </label>
+                <div className="flex gap-2">
+                  {platforms.map((platform) => {
+                    const IconComponent = platform.icon;
+                    return (
+                      <button
+                        key={platform.value}
+                        onClick={() => setSelectedPlatform(platform.value)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 cursor-pointer group ${
+                          selectedPlatform === platform.value 
+                            ? 'bg-primary/10 border-primary/50 shadow-sm' 
+                            : 'bg-background/30 border-border/50 hover:border-primary/30 hover:bg-background/50'
+                        }`}
+                      >
+                        <div className={`p-1 rounded transition-colors ${
+                          selectedPlatform === platform.value 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary'
+                        }`}>
+                          <IconComponent className="h-3 w-3" />
+                        </div>
+                        <span className="font-medium text-foreground group-hover:text-primary transition-colors text-xs">{platform.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 ml-auto">
+                <Button 
+                  onClick={handleImproveText} 
+                  disabled={isProcessing || !inputText.trim() || !selectedStyle}
+                  className="bg-gradient-primary hover:shadow-medium transition-smooth"
+                  size="default"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="h-4 w-4 mr-2" />
+                      Improve Text
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleClear}
+                  className="hover:bg-muted/50 transition-smooth"
+                  disabled={isProcessing}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Clear
+                </Button>
+              </div>
+            </div>
+
+          </div>
+        </Card>
+
+        {/* Text Areas */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Input */}
+          <Card className="p-0 bg-gradient-card shadow-soft border-0 overflow-hidden group">
+            <div className="p-4 bg-muted/30 border-b border-border/50 flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Original Text
+                </h3>
+              </div>
+              {inputText && (
+                <Badge variant="secondary" className="text-xs">
+                  {wordCount} words
+                </Badge>
+              )}
+            </div>
+            <div className="p-4 relative">
+              <Textarea
+                ref={inputRef}
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Paste or type your text here. For example: 'Hi, I hope you are doing well. I wanted to ask if we can meet tomorrow to discuss the project.'"
+                className="min-h-[300px] border-0 bg-transparent resize-none focus-visible:ring-0 text-foreground placeholder:text-muted-foreground transition-all duration-200"
+                onFocus={(e) => e.target.style.transform = 'scale(1.01)'}
+                onBlur={(e) => e.target.style.transform = 'scale(1)'}
+              />
+              {!inputText && (
+                <div className="absolute inset-4 pointer-events-none flex items-center justify-center">
+                  <div className="text-center text-muted-foreground/50">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Start typing to see magic happen</p>
                   </div>
                 </div>
-                {customLanguage.trim() && (
-                  <p className="text-xs text-primary flex items-center gap-1">
-                    <Check className="h-3 w-3" />
-                    Custom language "{customLanguage}" will be used
-                  </p>
+              )}
+            </div>
+          </Card>
+
+          {/* Output */}
+          <Card className="p-0 bg-gradient-card shadow-soft border-0 overflow-hidden group">
+            <div className="p-4 bg-primary/5 border-b border-border/50 flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Improved Text
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                {outputText && (
+                  <>
+                    <Badge variant="secondary" className="text-xs">
+                      {outputText.split(/\s+/).filter(word => word.length > 0).length} words
+                    </Badge>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleCopy}
+                      className="h-6 w-6 p-0"
+                    >
+                      {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleSwapText}
+                      className="h-6 w-6 p-0"
+                      title="Use as new input"
+                    >
+                      <ArrowRight className="h-3 w-3" />
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
-
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                <Wand2 className="h-4 w-4 text-primary" />
-                Extra Instructions
-              </label>
-              <Input
-                value={extraPrompt}
-                onChange={(e) => setExtraPrompt(e.target.value)}
-                placeholder="Add specific instructions (e.g., 'make it shorter', 'add emojis')..."
-                className="bg-background/50 border-border/50 hover:border-primary/30 transition-smooth"
+            <div className="p-4 relative">
+              <Textarea
+                ref={outputRef}
+                value={outputText}
+                readOnly
+                placeholder="Your improved text will appear here after processing..."
+                className="min-h-[300px] border-0 bg-transparent resize-none focus-visible:ring-0 text-foreground placeholder:text-muted-foreground transition-all duration-200"
               />
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-2 justify-start">
-            <Button 
-              onClick={handleImproveText} 
-              disabled={isProcessing || !inputText.trim() || !selectedStyle}
-              className="bg-gradient-primary hover:shadow-medium transition-smooth"
-              size="lg"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Zap className="h-4 w-4 mr-2" />
-                  Improve Text
-                  <span className="ml-2 text-xs opacity-70">(Ctrl+Enter)</span>
-                </>
+              {isProcessing && (
+                <div className="absolute inset-4 pointer-events-none flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
+                  <div className="text-center">
+                    <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Improving your text...</p>
+                  </div>
+                </div>
               )}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleClear}
-              className="hover:bg-muted/50 transition-smooth"
-              disabled={isProcessing}
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Clear
-            </Button>
-          </div>
+              {!outputText && !isProcessing && (
+                <div className="absolute inset-4 pointer-events-none flex items-center justify-center">
+                  <div className="text-center text-muted-foreground/50">
+                    <Sparkles className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Enhanced text will appear here</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
         </div>
-      </Card>
-
-      {/* Text Areas */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Input */}
-        <Card className="p-0 bg-gradient-card shadow-soft border-0 overflow-hidden group">
-          <div className="p-4 bg-muted/30 border-b border-border/50 flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-foreground flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Original Text
-              </h3>
-            </div>
-            {inputText && (
-              <Badge variant="secondary" className="text-xs">
-                {wordCount} words
-              </Badge>
-            )}
-          </div>
-          <div className="p-4 relative">
-            <Textarea
-              ref={inputRef}
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Paste or type your text here. For example: 'Hi, I hope you are doing well. I wanted to ask if we can meet tomorrow to discuss the project.'"
-              className="min-h-[300px] border-0 bg-transparent resize-none focus-visible:ring-0 text-foreground placeholder:text-muted-foreground transition-all duration-200"
-              onFocus={(e) => e.target.style.transform = 'scale(1.01)'}
-              onBlur={(e) => e.target.style.transform = 'scale(1)'}
-            />
-            {!inputText && (
-              <div className="absolute inset-4 pointer-events-none flex items-center justify-center">
-                <div className="text-center text-muted-foreground/50">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Start typing to see magic happen</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* Output */}
-        <Card className="p-0 bg-gradient-card shadow-soft border-0 overflow-hidden group">
-          <div className="p-4 bg-primary/5 border-b border-border/50 flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-foreground flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                Improved Text
-              </h3>
-            </div>
-            <div className="flex items-center gap-2">
-              {outputText && (
-                <>
-                  <Badge variant="secondary" className="text-xs">
-                    {outputText.split(/\s+/).filter(word => word.length > 0).length} words
-                  </Badge>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleCopy}
-                    className="h-6 w-6 p-0"
-                  >
-                    {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleSwapText}
-                    className="h-6 w-6 p-0"
-                    title="Use as new input"
-                  >
-                    <ArrowRight className="h-3 w-3" />
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-          <div className="p-4 relative">
-            <Textarea
-              ref={outputRef}
-              value={outputText}
-              readOnly
-              placeholder="Your improved text will appear here after processing..."
-              className="min-h-[300px] border-0 bg-transparent resize-none focus-visible:ring-0 text-foreground placeholder:text-muted-foreground transition-all duration-200"
-            />
-            {isProcessing && (
-              <div className="absolute inset-4 pointer-events-none flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
-                <div className="text-center">
-                  <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">Improving your text...</p>
-                </div>
-              </div>
-            )}
-            {!outputText && !isProcessing && (
-              <div className="absolute inset-4 pointer-events-none flex items-center justify-center">
-                <div className="text-center text-muted-foreground/50">
-                  <Sparkles className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Enhanced text will appear here</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
