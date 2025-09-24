@@ -1,5 +1,6 @@
 # Build stage
-FROM node:18-alpine AS builder
+# FROM node:18-alpine AS builder
+FROM ghcr.io/library/node:18-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -17,7 +18,9 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+# FROM nginx:alpine
+FROM ghcr.io/library/nginx:alpine
+
 
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
