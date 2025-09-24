@@ -238,17 +238,25 @@ jobs:
           mkdir -p /opt/textcraft
           cd /opt/textcraft
           
-          # Check if registry is configured
-          if [ -z "$REGISTRY_URL" ]; then
-            echo "⚠️  No registry configured. Cannot pull images."
-            echo "Please set REGISTRY_URL secret to enable deployment."
+          # Check if registry is configured and valid
+          if [ -z "$REGISTRY_URL" ] || [ "$REGISTRY_URL" = "***" ] || [ "$REGISTRY_URL" = "" ] || ! echo "$REGISTRY_URL" | grep -qE '^[a-zA-Z0-9.-]+(/[a-zA-Z0-9.-]+)?$'; then
+            echo "⚠️  Registry not properly configured. Cannot pull images."
+            echo "Current REGISTRY_URL value: '$REGISTRY_URL'"
+            echo "Please set a valid REGISTRY_URL secret to enable deployment."
+            echo "Examples: docker.io/yourusername, ghcr.io/yourusername"
             exit 1
           fi
           
           # Pull latest images
           echo "Pulling latest images from $REGISTRY_URL..."
-          docker pull $REGISTRY_URL/$IMAGE_NAME-api:latest
-          docker pull $REGISTRY_URL/$IMAGE_NAME-ui:latest
+          if ! docker pull $REGISTRY_URL/$IMAGE_NAME-api:latest; then
+            echo "❌ Failed to pull API image"
+            exit 1
+          fi
+          if ! docker pull $REGISTRY_URL/$IMAGE_NAME-ui:latest; then
+            echo "❌ Failed to pull UI image"
+            exit 1
+          fi
           
           # Stop and remove existing containers
           echo "Stopping existing containers..."
