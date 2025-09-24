@@ -52,4 +52,4 @@ jobs:
               --network textcraft-network \
               -p 33000:80 \
               ${{ secrets.REGISTRY_URL }}/textcraft-ui:latest
-            docker network connect npm-network textcraft-ui
+            docker network connect root_npm-network textcraft-ui
