@@ -57,10 +57,52 @@ jobs:
         npm run lint
         npm run build
 
+  build-test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: ui/package-lock.json
+
+    - name: Install Go dependencies
+      run: |
+        cd api
+        go mod download
+        go mod verify
+
+    - name: Run Go tests
+      run: |
+        cd api
+        go test -v ./...
+
+    - name: Install UI dependencies
+      run: |
+        cd ui
+        npm ci
+
+    - name: Run UI tests
+      run: |
+        cd ui
+        npm run lint
+        npm run build
+
   build-and-push:
     runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    needs: build-test
+    if: always() && needs.build-test.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
     
     steps:
     - name: Checkout code
@@ -115,7 +157,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    if: always() && needs.build-and-push.result == 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
     
     steps:
     - name: Checkout code
