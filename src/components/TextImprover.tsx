@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, Sparkles, Languages, Wand2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -27,6 +30,7 @@ export const TextImprover = () => {
   const [outputText, setOutputText] = useState('');
   const [selectedStyle, setSelectedStyle] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [customLanguage, setCustomLanguage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleImproveText = async () => {
@@ -50,7 +54,8 @@ export const TextImprover = () => {
     
     // Simulate text processing
     setTimeout(() => {
-      const processedText = `[${selectedStyle.toUpperCase()} VERSION - ${languages.find(l => l.value === selectedLanguage)?.label}]\n\n${inputText}`;
+      const languageDisplay = customLanguage || languages.find(l => l.value === selectedLanguage)?.label;
+      const processedText = `[${selectedStyle.toUpperCase()} VERSION - ${languageDisplay}]\n\n${inputText}`;
       setOutputText(processedText);
       setIsProcessing(false);
       toast({
@@ -65,6 +70,7 @@ export const TextImprover = () => {
     setOutputText('');
     setSelectedStyle('');
     setSelectedLanguage('en');
+    setCustomLanguage('');
   };
 
   return (
@@ -72,26 +78,22 @@ export const TextImprover = () => {
       {/* Controls */}
       <Card className="p-6 bg-gradient-card shadow-soft border-0">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 space-y-3">
             <label className="text-sm font-medium text-foreground flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
               Writing Style
             </label>
-            <Select value={selectedStyle} onValueChange={setSelectedStyle}>
-              <SelectTrigger className="bg-background/50 border-border/50 hover:border-primary/30 transition-smooth">
-                <SelectValue placeholder="Choose your style..." />
-              </SelectTrigger>
-              <SelectContent>
-                {styles.map((style) => (
-                  <SelectItem key={style.value} value={style.value}>
-                    <div>
-                      <div className="font-medium">{style.label}</div>
-                      <div className="text-sm text-muted-foreground">{style.description}</div>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <RadioGroup value={selectedStyle} onValueChange={setSelectedStyle} className="grid grid-cols-2 gap-2">
+              {styles.map((style) => (
+                <div key={style.value} className="flex items-start space-x-2 p-3 rounded-lg bg-background/30 border border-border/50 hover:border-primary/30 transition-smooth">
+                  <RadioGroupItem value={style.value} id={style.value} className="mt-0.5" />
+                  <Label htmlFor={style.value} className="flex-1 cursor-pointer">
+                    <div className="font-medium text-foreground">{style.label}</div>
+                    <div className="text-xs text-muted-foreground">{style.description}</div>
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
           </div>
           
           <div className="flex-1 space-y-2">
@@ -99,18 +101,26 @@ export const TextImprover = () => {
               <Languages className="h-4 w-4 text-primary" />
               Output Language
             </label>
-            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-              <SelectTrigger className="bg-background/50 border-border/50 hover:border-primary/30 transition-smooth">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {languages.map((language) => (
-                  <SelectItem key={language.value} value={language.value}>
-                    {language.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                <SelectTrigger className="bg-background/50 border-border/50 hover:border-primary/30 transition-smooth">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {languages.map((language) => (
+                    <SelectItem key={language.value} value={language.value}>
+                      {language.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                value={customLanguage}
+                onChange={(e) => setCustomLanguage(e.target.value)}
+                placeholder="Or enter custom language..."
+                className="bg-background/50 border-border/50 hover:border-primary/30 transition-smooth"
+              />
+            </div>
           </div>
 
           <div className="flex gap-2">
