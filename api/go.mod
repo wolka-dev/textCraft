@@ -1,4 +1,4 @@
-module phrasing-craft-api
+module textCraft-api
 
 go 1.21
 

@@ -1,6 +1,6 @@
-# Docker Setup for Phrasing Craft
+# Docker Setup for TextCraft
 
-This document explains how to run the Phrasing Craft application using Docker and Docker Compose.
+This document explains how to run the TextCraft application using Docker and Docker Compose.
 
 ## Prerequisites
 
@@ -228,7 +228,7 @@ For production deployment:
 ## File Structure
 
 ```
-phrasing-craft/
+textcraft/
 ├── docker-compose.yml          # Production compose file
 ├── docker-compose.dev.yml      # Development compose file
 ├── api/

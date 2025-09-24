@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-The Phrasing Craft application now automatically saves your preferences in the browser's localStorage, so your settings persist across sessions.
+The TextCraft application now automatically saves your preferences in the browser's localStorage, so your settings persist across sessions.
 
 ## 💾 What Gets Saved
 
@@ -56,11 +56,11 @@ The following user preferences are automatically saved:
 
 ### Storage Keys
 
-- `phrasing-craft-style` - Writing style selection
-- `phrasing-craft-platform` - Platform selection
-- `phrasing-craft-language` - Language selection
-- `phrasing-craft-custom-language` - Custom language input
-- `phrasing-craft-extra-prompt` - Extra instructions
+- `textcraft-style` - Writing style selection
+- `textcraft-platform` - Platform selection
+- `textcraft-language` - Language selection
+- `textcraft-custom-language` - Custom language input
+- `textcraft-extra-prompt` - Extra instructions
 
 ### Browser Compatibility
 
@@ -86,7 +86,7 @@ To add new persistent preferences:
 
 ```typescript
 const [newPreference, setNewPreference] = useLocalStorage(
-  "phrasing-craft-new-pref",
+  "textcraft-new-pref",
   "default"
 );
 ```

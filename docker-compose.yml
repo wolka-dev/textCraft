@@ -6,14 +6,14 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: phrasing-craft-api
+    container_name: textcraft-api
     ports:
       - "8080:8080"
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
       - PORT=8080
     networks:
-      - phrasing-craft-network
+      - textcraft-network
     restart: unless-stopped
     healthcheck:
       test:
@@ -35,14 +35,14 @@ services:
     build:
       context: ./ui
       dockerfile: Dockerfile
-    container_name: phrasing-craft-ui
+    container_name: textcraft-ui
     ports:
       - "3000:80"
     depends_on:
       api:
         condition: service_healthy
     networks:
-      - phrasing-craft-network
+      - textcraft-network
     restart: unless-stopped
     healthcheck:
       test:
@@ -60,7 +60,7 @@ services:
       start_period: 40s
 
 networks:
-  phrasing-craft-network:
+  textcraft-network:
     driver: bridge
 # Optional: Add volumes for development
 # Uncomment the following if you want to mount source code for development

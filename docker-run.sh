@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Phrasing Craft Docker Runner Script
+# TextCraft Docker Runner Script
 # Usage: ./docker-run.sh [dev|prod|stop|clean]
 
 set -e
@@ -58,7 +58,7 @@ show_usage() {
 
 # Function to start development environment
 start_dev() {
-    print_status "Starting Phrasing Craft in development mode..."
+    print_status "Starting TextCraft in development mode..."
     check_docker
     
     docker-compose -f docker-compose.dev.yml up --build -d
@@ -74,7 +74,7 @@ start_dev() {
 
 # Function to start production environment
 start_prod() {
-    print_status "Starting Phrasing Craft in production mode..."
+    print_status "Starting TextCraft in production mode..."
     check_docker
     
     docker-compose up --build -d
@@ -90,7 +90,7 @@ start_prod() {
 
 # Function to stop all services
 stop_services() {
-    print_status "Stopping all Phrasing Craft services..."
+    print_status "Stopping all TextCraft services..."
     
     # Stop production services
     docker-compose down 2>/dev/null || true
@@ -106,15 +106,15 @@ clean_up() {
     print_warning "This will remove all containers, images, and volumes. Are you sure? (y/N)"
     read -r response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        print_status "Cleaning up Phrasing Craft..."
+        print_status "Cleaning up TextCraft..."
         
         # Stop and remove containers
         docker-compose down -v 2>/dev/null || true
         docker-compose -f docker-compose.dev.yml down -v 2>/dev/null || true
         
         # Remove images
-        docker rmi phrasing-craft-api phrasing-craft-ui 2>/dev/null || true
-        docker rmi phrasing-craft-api-dev phrasing-craft-ui-dev 2>/dev/null || true
+        docker rmi textcraft-api textcraft-ui 2>/dev/null || true
+        docker rmi textcraft-api-dev textcraft-ui-dev 2>/dev/null || true
         
         # Clean up unused resources
         docker system prune -f

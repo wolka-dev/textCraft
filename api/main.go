@@ -386,7 +386,7 @@ func main() {
 		w.Header().Set(ContentTypeHeader, ContentTypeJSON)
 		json.NewEncoder(w).Encode(map[string]string{
 			"status":    "healthy",
-			"service":   "phrasing-craft-api",
+			"service":   "textcraft-api",
 			"timestamp": time.Now().Format(time.RFC3339),
 		})
 	}).Methods("GET", "OPTIONS")
@@ -398,7 +398,7 @@ func main() {
 
 	// Start server
 	port := "8080"
-	fmt.Printf("🚀 Starting Phrasing Craft API server on port %s\n", port)
+	fmt.Printf("🚀 Starting TextCraft API server on port %s\n", port)
 	fmt.Printf("📝 Text improvement endpoint: http://localhost:%s/api/improve-text\n", port)
 	fmt.Printf("🏥 Health check: http://localhost:%s/health\n", port)
 

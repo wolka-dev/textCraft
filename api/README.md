@@ -1,6 +1,6 @@
-# Phrasing Craft API
+# TextCraft API
 
-A minimal Go API server for the Phrasing Craft application with text improvement capabilities.
+A minimal Go API server for the TextCraft application with text improvement capabilities.
 
 ## Features
 
@@ -85,7 +85,7 @@ The server will start on `http://localhost:8080`
 ```json
 {
   "status": "healthy",
-  "service": "phrasing-craft-api",
+  "service": "textcraft-api",
   "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
@@ -120,8 +120,8 @@ Or use the provided test script:
 To build the application:
 
 ```bash
-go build -o phrasing-craft-api main.go
-./phrasing-craft-api
+go build -o textcraft-api main.go
+./textcraft-api
 ```
 
 ## Future Enhancements

@@ -1,6 +1,6 @@
 # Groq AI Integration Setup
 
-This guide explains how to set up and use Groq AI for text improvement in your Phrasing Craft API.
+This guide explains how to set up and use Groq AI for text improvement in your TextCraft API.
 
 ## 🚀 What is Groq?
 

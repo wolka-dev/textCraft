@@ -50,23 +50,23 @@ export function useLocalStorage<T>(
  */
 export function useUserPreferences() {
   const [selectedStyle, setSelectedStyle] = useLocalStorage(
-    "phrasing-craft-style",
+    "textcraft-style",
     "typo-grammar"
   );
   const [selectedPlatform, setSelectedPlatform] = useLocalStorage(
-    "phrasing-craft-platform",
+    "textcraft-platform",
     "email"
   );
   const [selectedLanguage, setSelectedLanguage] = useLocalStorage(
-    "phrasing-craft-language",
+    "textcraft-language",
     "en"
   );
   const [customLanguage, setCustomLanguage] = useLocalStorage(
-    "phrasing-craft-custom-language",
+    "textcraft-custom-language",
     ""
   );
   const [extraPrompt, setExtraPrompt] = useLocalStorage(
-    "phrasing-craft-extra-prompt",
+    "textcraft-extra-prompt",
     ""
   );
 
