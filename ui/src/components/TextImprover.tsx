@@ -2,14 +2,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, Twitter } from 'lucide-react';
+import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { apiService, TextImprovementRequest } from '@/services/api';
 
 const styles = [
   { value: 'typo-grammar', label: 'Typo/Grammar', description: 'Fix errors and improve clarity', icon: CheckCircle },
@@ -23,7 +22,7 @@ const platforms = [
   { value: 'email', label: 'Email', icon: Mail },
   { value: 'slack', label: 'Slack', icon: SlackIcon },
   { value: 'document', label: 'Document', icon: FileText },
-  { value: 'social', label: 'Social Media', icon: Twitter },
+  { value: 'social', label: 'Social Media', icon: FileText },
 ];
 
 const languages = [
@@ -47,7 +46,9 @@ export const TextImprover = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [wordCount, setWordCount] = useState(0);
-  const [charCount, setCharCount] = useState(0);
+  const [backendConnected, setBackendConnected] = useState<boolean | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isOutputEdited, setIsOutputEdited] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const outputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -58,11 +59,31 @@ export const TextImprover = () => {
     }
   }, []);
 
-  // Update word and character count
+  // Check backend connection on mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const connected = await apiService.testConnection();
+        setBackendConnected(connected);
+        if (connected) {
+          setConnectionError(null);
+        } else {
+          setConnectionError('Backend server is not running');
+        }
+      } catch (error) {
+        setBackendConnected(false);
+        setConnectionError('Failed to connect to backend server');
+        console.error('Backend connection error:', error);
+      }
+    };
+
+    checkConnection();
+  }, []);
+
+  // Update word count
   useEffect(() => {
     const words = inputText.trim().split(/\s+/).filter(word => word.length > 0);
     setWordCount(words.length);
-    setCharCount(inputText.length);
   }, [inputText]);
 
   const handleImproveText = useCallback(async () => {
@@ -83,21 +104,51 @@ export const TextImprover = () => {
       return;
     }
 
+    if (!backendConnected) {
+      toast({
+        title: "Backend not available",
+        description: connectionError || "Please ensure the backend server is running.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
+    setConnectionError(null);
     
-    // Simulate text processing with better feedback
-    setTimeout(() => {
-      const languageDisplay = customLanguage || languages.find(l => l.value === selectedLanguage)?.label;
-      const platformDisplay = platforms.find(p => p.value === selectedPlatform)?.label;
-      const processedText = `[${selectedStyle.toUpperCase()} VERSION - ${languageDisplay} - ${platformDisplay}]\n\n${inputText}`;
-      setOutputText(processedText);
-      setIsProcessing(false);
+    try {
+      const request: TextImprovementRequest = {
+        text: inputText,
+        style: selectedStyle,
+        platform: selectedPlatform,
+        language: selectedLanguage,
+        customLanguage: customLanguage.trim() || undefined,
+        extraPrompt: extraPrompt.trim() || undefined,
+      };
+
+      const response = await apiService.improveText(request);
+      
+      // Use the improved text from the backend response
+      setOutputText(response.improvedText);
+      setIsOutputEdited(false); // Reset edit state when new text is generated
+      
       toast({
         title: "Text improved successfully!",
-        description: "Your text has been transformed according to your preferences.",
+        description: "Your text has been sent to the backend and processed.",
       });
-    }, 2000);
-  }, [inputText, selectedStyle, selectedPlatform, customLanguage, selectedLanguage]);
+      
+    } catch (error) {
+      console.error('Error improving text:', error);
+      setConnectionError('Failed to process text');
+      toast({
+        title: "Error processing text",
+        description: "There was an error communicating with the backend. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [inputText, selectedStyle, selectedPlatform, customLanguage, selectedLanguage, extraPrompt, backendConnected, connectionError]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -123,6 +174,7 @@ export const TextImprover = () => {
     setCustomLanguage('');
     setExtraPrompt('');
     setCopied(false);
+    setIsOutputEdited(false);
     inputRef.current?.focus();
   };
 
@@ -142,8 +194,14 @@ export const TextImprover = () => {
     if (outputText) {
       setInputText(outputText);
       setOutputText('');
+      setIsOutputEdited(false);
       inputRef.current?.focus();
     }
+  };
+
+  const handleOutputTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setOutputText(e.target.value);
+    setIsOutputEdited(true);
   };
 
   // Get current selected language for display
@@ -311,11 +369,33 @@ export const TextImprover = () => {
                 </div>
               </div>
 
+              {/* Backend Status */}
+              <div className="flex items-center gap-2">
+                {backendConnected === null && (
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span className="text-xs">Checking connection...</span>
+                  </div>
+                )}
+                {backendConnected === true && (
+                  <div className="flex items-center gap-1 text-green-600">
+                    <Check className="h-3 w-3" />
+                    <span className="text-xs">Backend connected</span>
+                  </div>
+                )}
+                {backendConnected === false && (
+                  <div className="flex items-center gap-1 text-red-600">
+                    <AlertCircle className="h-3 w-3" />
+                    <span className="text-xs">Backend offline</span>
+                  </div>
+                )}
+              </div>
+
               {/* Action Buttons */}
               <div className="flex gap-2 ml-auto">
                 <Button 
                   onClick={handleImproveText} 
-                  disabled={isProcessing || !inputText.trim() || !selectedStyle}
+                  disabled={isProcessing || !inputText.trim() || !selectedStyle || !backendConnected}
                   className="bg-gradient-primary hover:shadow-medium transition-smooth"
                   size="default"
                 >
@@ -391,6 +471,11 @@ export const TextImprover = () => {
                 <h3 className="font-semibold text-foreground flex items-center gap-2">
                   <Sparkles className="h-4 w-4" />
                   Improved Text
+                  {isOutputEdited && (
+                    <Badge variant="outline" className="text-xs text-orange-600 border-orange-200 bg-orange-50">
+                      Edited
+                    </Badge>
+                  )}
                 </h3>
               </div>
               <div className="flex items-center gap-2">
@@ -424,7 +509,7 @@ export const TextImprover = () => {
               <Textarea
                 ref={outputRef}
                 value={outputText}
-                readOnly
+                onChange={handleOutputTextChange}
                 placeholder="Your improved text will appear here after processing..."
                 className="min-h-[300px] border-0 bg-transparent resize-none focus-visible:ring-0 text-foreground placeholder:text-muted-foreground transition-all duration-200"
               />
