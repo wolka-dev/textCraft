@@ -31,6 +31,7 @@ export const TextImprover = () => {
   const [selectedStyle, setSelectedStyle] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [customLanguage, setCustomLanguage] = useState('');
+  const [extraPrompt, setExtraPrompt] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleImproveText = async () => {
@@ -71,6 +72,7 @@ export const TextImprover = () => {
     setSelectedStyle('');
     setSelectedLanguage('en');
     setCustomLanguage('');
+    setExtraPrompt('');
   };
 
   return (
@@ -121,6 +123,19 @@ export const TextImprover = () => {
                 className="bg-background/50 border-border/50 hover:border-primary/30 transition-smooth"
               />
             </div>
+          </div>
+
+          <div className="flex-1 space-y-2">
+            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Wand2 className="h-4 w-4 text-primary" />
+              Extra Instructions
+            </label>
+            <Input
+              value={extraPrompt}
+              onChange={(e) => setExtraPrompt(e.target.value)}
+              placeholder="Add specific instructions (e.g., 'make it shorter', 'add emojis')..."
+              className="bg-background/50 border-border/50 hover:border-primary/30 transition-smooth"
+            />
           </div>
 
           <div className="flex gap-2">
