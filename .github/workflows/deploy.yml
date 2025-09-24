@@ -113,32 +113,47 @@ jobs:
 
     - name: Check registry configuration
       run: |
-        if [ -z "${{ secrets.REGISTRY_URL }}" ]; then
-          echo "⚠️  REGISTRY_URL secret is not set. Building images locally only."
+        REGISTRY_URL="${{ secrets.REGISTRY_URL }}"
+        REGISTRY_USERNAME="${{ secrets.REGISTRY_USERNAME }}"
+        REGISTRY_PASSWORD="${{ secrets.REGISTRY_PASSWORD }}"
+        
+        # Check if registry URL is valid (not empty, not masked, contains valid characters)
+        if [ -z "$REGISTRY_URL" ] || [ "$REGISTRY_URL" = "***" ] || [ "$REGISTRY_URL" = "" ] || ! echo "$REGISTRY_URL" | grep -qE '^[a-zA-Z0-9.-]+(/[a-zA-Z0-9.-]+)?$'; then
+          echo "⚠️  REGISTRY_URL secret is not properly configured. Building images locally only."
+          echo "Current REGISTRY_URL value: '$REGISTRY_URL'"
           echo "To enable Docker registry push, set these secrets:"
           echo "  - REGISTRY_URL (e.g., docker.io/yourusername or ghcr.io/yourusername)"
           echo "  - REGISTRY_USERNAME"
           echo "  - REGISTRY_PASSWORD"
           echo "Setting PUSH_IMAGES=false"
           echo "PUSH_IMAGES=false" >> $GITHUB_ENV
+          echo "REGISTRY_URL=" >> $GITHUB_ENV
         else
-          echo "✅ Registry configured: ${{ secrets.REGISTRY_URL }}"
+          echo "✅ Registry configured: $REGISTRY_URL"
           echo "PUSH_IMAGES=true" >> $GITHUB_ENV
+          echo "REGISTRY_URL=$REGISTRY_URL" >> $GITHUB_ENV
         fi
 
     - name: Log in to Docker Registry
       if: env.PUSH_IMAGES == 'true'
-      run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
+      run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
 
     - name: Set image tags
       id: tags
       run: |
-        if [ "${{ env.PUSH_IMAGES }}" == "true" ]; then
-          echo "api_tag=${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-api:latest" >> $GITHUB_OUTPUT
-          echo "ui_tag=${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-ui:latest" >> $GITHUB_OUTPUT
-          echo "api_tag_sha=${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-api:${{ github.sha }}" >> $GITHUB_OUTPUT
-          echo "ui_tag_sha=${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-ui:${{ github.sha }}" >> $GITHUB_OUTPUT
+        echo "🔍 Debug info:"
+        echo "PUSH_IMAGES: ${{ env.PUSH_IMAGES }}"
+        echo "REGISTRY_URL: '${{ env.REGISTRY_URL }}'"
+        echo "REGISTRY_URL length: ${#REGISTRY_URL}"
+        
+        if [ "${{ env.PUSH_IMAGES }}" == "true" ] && [ -n "${{ env.REGISTRY_URL }}" ] && [ "${{ env.REGISTRY_URL }}" != "***" ]; then
+          echo "✅ Using registry tags with: ${{ env.REGISTRY_URL }}"
+          echo "api_tag=${{ env.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-api:latest" >> $GITHUB_OUTPUT
+          echo "ui_tag=${{ env.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-ui:latest" >> $GITHUB_OUTPUT
+          echo "api_tag_sha=${{ env.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-api:${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "ui_tag_sha=${{ env.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-ui:${{ github.sha }}" >> $GITHUB_OUTPUT
         else
+          echo "⚠️  Using localhost tags (registry not configured or invalid)"
           echo "api_tag=localhost/${{ env.IMAGE_NAME }}-api:latest" >> $GITHUB_OUTPUT
           echo "ui_tag=localhost/${{ env.IMAGE_NAME }}-ui:latest" >> $GITHUB_OUTPUT
           echo "api_tag_sha=localhost/${{ env.IMAGE_NAME }}-api:${{ github.sha }}" >> $GITHUB_OUTPUT
