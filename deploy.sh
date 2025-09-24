@@ -84,7 +84,7 @@ sleep 15
 print_status "Performing health checks..."
 
 # Check API health
-if curl -f http://localhost:8080/health > /dev/null 2>&1; then
+if curl -f http://localhost:8081/health > /dev/null 2>&1; then
     print_success "API is healthy"
 else
     print_error "API health check failed"
@@ -93,7 +93,7 @@ else
 fi
 
 # Check UI health
-if curl -f http://localhost:3000 > /dev/null 2>&1; then
+if curl -f http://localhost:3001 > /dev/null 2>&1; then
     print_success "UI is healthy"
 else
     print_error "UI health check failed"
@@ -111,6 +111,6 @@ docker-compose -f docker-compose.prod.yml ps
 
 print_success "Deployment completed successfully!"
 print_status "Application URLs:"
-print_status "  API: http://$(hostname -I | awk '{print $1}'):8080"
-print_status "  UI: http://$(hostname -I | awk '{print $1}'):3000"
-print_status "  Health Check: http://$(hostname -I | awk '{print $1}'):8080/health"
+print_status "  API: http://$(hostname -I | awk '{print $1}'):8081"
+print_status "  UI: http://$(hostname -I | awk '{print $1}'):3001"
+print_status "  Health Check: http://$(hostname -I | awk '{print $1}'):8081/health"

@@ -258,35 +258,35 @@ jobs:
           # Create network if it doesn't exist
           docker network create textcraft-network || true
           
-          # Run API container
-          echo "Starting API container..."
-          docker run -d \
-            --restart=always \
-            --name textcraft-api \
-            --network textcraft-network \
-            -p 8080:8080 \
-            -e GROQ_API_KEY="$GROQ_API_KEY" \
-            $REGISTRY_URL/$IMAGE_NAME-api:latest
+            # Run API container
+            echo "Starting API container..."
+            docker run -d \
+              --restart=always \
+              --name textcraft-api \
+              --network textcraft-network \
+              -p 38080:8080 \
+              -e GROQ_API_KEY="$GROQ_API_KEY" \
+              $REGISTRY_URL/$IMAGE_NAME-api:latest
           
           # Wait for API to be ready
           echo "Waiting for API to be ready..."
           sleep 10
           
-          # Run UI container
-          echo "Starting UI container..."
-          docker run -d \
-            --restart=always \
-            --name textcraft-ui \
-            --network textcraft-network \
-            -p 3000:80 \
-            $REGISTRY_URL/$IMAGE_NAME-ui:latest
+            # Run UI container
+            echo "Starting UI container..."
+            docker run -d \
+              --restart=always \
+              --name textcraft-ui \
+              --network textcraft-network \
+              -p 33000:80 \
+              $REGISTRY_URL/$IMAGE_NAME-ui:latest
           
           # Health check
           echo "Performing health check..."
           sleep 5
           
           # Check API health
-          if curl -f http://localhost:8080/health; then
+          if curl -f http://localhost:38080/health; then
             echo "✅ API is healthy"
           else
             echo "❌ API health check failed"
@@ -294,7 +294,7 @@ jobs:
           fi
           
           # Check UI health
-          if curl -f http://localhost:3000; then
+          if curl -f http://localhost:33000; then
             echo "✅ UI is healthy"
           else
             echo "❌ UI health check failed"
@@ -306,8 +306,8 @@ jobs:
           docker image prune -f
           
           echo "🚀 Deployment completed successfully!"
-          echo "API: http://${{ secrets.SSH_HOST }}:8080"
-          echo "UI: http://${{ secrets.SSH_HOST }}:3000"
+          echo "API: http://${{ secrets.SSH_HOST }}:38080"
+          echo "UI: http://${{ secrets.SSH_HOST }}:33000"
 
     - name: Deployment summary
       if: always()
@@ -315,8 +315,8 @@ jobs:
         echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
         if [ "${{ env.DEPLOY_TO_SERVER }}" == "true" ]; then
           echo "- **Status**: ✅ Deployed to server" >> $GITHUB_STEP_SUMMARY
-          echo "- **API**: http://${{ secrets.SSH_HOST }}:8080" >> $GITHUB_STEP_SUMMARY
-          echo "- **UI**: http://${{ secrets.SSH_HOST }}:3000" >> $GITHUB_STEP_SUMMARY
+          echo "- **API**: http://${{ secrets.SSH_HOST }}:38080" >> $GITHUB_STEP_SUMMARY
+          echo "- **UI**: http://${{ secrets.SSH_HOST }}:33000" >> $GITHUB_STEP_SUMMARY
         else
           echo "- **Status**: ⚠️ Deployment skipped (SSH secrets not configured)" >> $GITHUB_STEP_SUMMARY
           echo "- **Reason**: Missing SSH_HOST, SSH_USER, or SSH_PRIVATE_KEY secrets" >> $GITHUB_STEP_SUMMARY
