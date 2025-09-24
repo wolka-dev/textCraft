@@ -160,7 +160,6 @@ export const TextImprover = () => {
               <label className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
                 Writing Style
-                <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-5 gap-3">
                 {styles.map((style) => {
@@ -170,22 +169,20 @@ export const TextImprover = () => {
                       <TooltipTrigger asChild>
                         <button
                           onClick={() => setSelectedStyle(style.value)}
-                          className={`flex flex-col items-center space-y-2 p-3 rounded-lg border transition-all duration-200 cursor-pointer group ${
+                          className={`flex items-center gap-2 p-2 rounded-lg border transition-all duration-200 cursor-pointer group ${
                             selectedStyle === style.value 
                               ? 'bg-primary/10 border-primary/50 shadow-sm' 
                               : 'bg-background/30 border-border/50 hover:border-primary/30 hover:bg-background/50'
                           }`}
                         >
-                          <div className={`p-2 rounded-lg transition-colors ${
+                          <div className={`p-1 rounded transition-colors ${
                             selectedStyle === style.value 
                               ? 'bg-primary text-primary-foreground' 
                               : 'bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary'
                           }`}>
-                            <IconComponent className="h-4 w-4" />
+                            <IconComponent className="h-3 w-3" />
                           </div>
-                          <div className="text-center">
-                            <div className="font-medium text-foreground group-hover:text-primary transition-colors text-sm">{style.label}</div>
-                          </div>
+                          <span className="font-medium text-foreground group-hover:text-primary transition-colors text-xs">{style.label}</span>
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
