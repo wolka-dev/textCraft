@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useUserPreferences } from '@/hooks/use-local-storage';
 import { apiService, TextImprovementRequest } from '@/services/api';
 
 const styles = [
@@ -38,17 +39,27 @@ const languages = [
 export const TextImprover = () => {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
-  const [selectedStyle, setSelectedStyle] = useState('typo-grammar');
-  const [selectedPlatform, setSelectedPlatform] = useState('email');
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [customLanguage, setCustomLanguage] = useState('');
-  const [extraPrompt, setExtraPrompt] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [backendConnected, setBackendConnected] = useState<boolean | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isOutputEdited, setIsOutputEdited] = useState(false);
+
+  // Use localStorage for persistent user preferences
+  const {
+    selectedStyle,
+    setSelectedStyle,
+    selectedPlatform,
+    setSelectedPlatform,
+    selectedLanguage,
+    setSelectedLanguage,
+    customLanguage,
+    setCustomLanguage,
+    extraPrompt,
+    setExtraPrompt,
+    clearPreferences,
+  } = useUserPreferences();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const outputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -168,11 +179,7 @@ export const TextImprover = () => {
   const handleClear = () => {
     setInputText('');
     setOutputText('');
-    setSelectedStyle('typo-grammar');
-    setSelectedPlatform('email');
-    setSelectedLanguage('en');
-    setCustomLanguage('');
-    setExtraPrompt('');
+    clearPreferences(); // This will reset all stored preferences
     setCopied(false);
     setIsOutputEdited(false);
     inputRef.current?.focus();
@@ -213,6 +220,13 @@ export const TextImprover = () => {
         {/* Controls */}
         <Card className="p-6 bg-gradient-card shadow-soft border-0">
           <div className="space-y-6">
+            {/* Preferences Saved Indicator */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Preferences are automatically saved</span>
+              </div>
+            </div>
             {/* Writing Style Section */}
             <div className="space-y-3">
               <label className="text-sm font-medium text-foreground flex items-center gap-2">
@@ -419,6 +433,16 @@ export const TextImprover = () => {
                 >
                   <RotateCcw className="h-4 w-4 mr-2" />
                   Clear
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={clearPreferences}
+                  className="hover:bg-muted/50 transition-smooth"
+                  disabled={isProcessing}
+                  title="Reset all saved preferences to defaults"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Reset Preferences
                 </Button>
               </div>
             </div>

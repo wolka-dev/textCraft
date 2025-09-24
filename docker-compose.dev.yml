@@ -10,7 +10,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - GROQ_API_KEY=REDACTED_GROQ_API_KEY
+      - GROQ_API_KEY=${GROQ_API_KEY}
       - PORT=8080
       - GO_ENV=development
     volumes:
