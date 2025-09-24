@@ -13,26 +13,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Log in to Wolka Docker Registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
 
       - name: Build and Push API Image
         run: |
           docker build -t ${{ secrets.REGISTRY_URL }}/textcraft-api:latest ./api
+          docker push ${{ secrets.REGISTRY_URL }}/textcraft-api:latest
 
       - name: Build and Push UI Image
         run: |
           docker build -t ${{ secrets.REGISTRY_URL }}/textcraft-ui:latest ./ui
-
-      - name: Log in to WolkaDocker Registry
-        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
-
-      - name: Push API Image
-        run: |
-          docker push ${{ secrets.REGISTRY_URL }}/textcraft-api:latest
-
-      - name: Push UI Image
-        run: |
           docker push ${{ secrets.REGISTRY_URL }}/textcraft-ui:latest
-
 
       - name: SSH into Server and Deploy
         uses: appleboy/ssh-action@v1.0.0
