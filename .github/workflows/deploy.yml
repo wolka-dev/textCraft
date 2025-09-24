@@ -37,11 +37,11 @@ jobs:
             docker pull ${{ secrets.REGISTRY_URL }}/textcraft-ui:latest
             docker stop textcraft-api textcraft-ui || true
             docker rm textcraft-api textcraft-ui || true
-            docker network create textcraft-network || true
+            docker network create root_npm-network || true
             docker run -d \
               --restart=always \
               --name textcraft-api \
-              --network textcraft-network \
+              --network root_npm-network \
               -p 38080:8080 \
               -e GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
               -e PORT=8080 \
@@ -49,7 +49,6 @@ jobs:
             docker run -d \
               --restart=always \
               --name textcraft-ui \
-              --network textcraft-network \
+              --network root_npm-network \
               -p 33000:80 \
               ${{ secrets.REGISTRY_URL }}/textcraft-ui:latest
-            docker network connect root_npm-network textcraft-ui
