@@ -111,48 +111,72 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    - name: Check registry configuration
+      run: |
+        if [ -z "${{ secrets.REGISTRY_URL }}" ]; then
+          echo "⚠️  REGISTRY_URL secret is not set. Building images locally only."
+          echo "To enable Docker registry push, set these secrets:"
+          echo "  - REGISTRY_URL (e.g., docker.io/yourusername or ghcr.io/yourusername)"
+          echo "  - REGISTRY_USERNAME"
+          echo "  - REGISTRY_PASSWORD"
+          echo "Setting PUSH_IMAGES=false"
+          echo "PUSH_IMAGES=false" >> $GITHUB_ENV
+        else
+          echo "✅ Registry configured: ${{ secrets.REGISTRY_URL }}"
+          echo "PUSH_IMAGES=true" >> $GITHUB_ENV
+        fi
+
     - name: Log in to Docker Registry
+      if: env.PUSH_IMAGES == 'true'
       run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
 
     - name: Extract metadata
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}
+        images: ${{ secrets.REGISTRY_URL || 'localhost' }}/${{ env.IMAGE_NAME }}
         tags: |
           type=ref,event=branch
           type=ref,event=pr
           type=sha,prefix={{branch}}-
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build and push API image
+    - name: Build API image
       uses: docker/build-push-action@v5
       with:
         context: ./api
         file: ./api/Dockerfile
-        push: true
-        tags: ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-api:${{ github.sha }}
+        push: ${{ env.PUSH_IMAGES == 'true' }}
+        tags: |
+          ${{ secrets.REGISTRY_URL || 'localhost' }}/${{ env.IMAGE_NAME }}-api:${{ github.sha }}
+          ${{ secrets.REGISTRY_URL || 'localhost' }}/${{ env.IMAGE_NAME }}-api:latest
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Build and push UI image
+    - name: Build UI image
       uses: docker/build-push-action@v5
       with:
         context: ./ui
         file: ./ui/Dockerfile
-        push: true
-        tags: ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-ui:${{ github.sha }}
+        push: ${{ env.PUSH_IMAGES == 'true' }}
+        tags: |
+          ${{ secrets.REGISTRY_URL || 'localhost' }}/${{ env.IMAGE_NAME }}-ui:${{ github.sha }}
+          ${{ secrets.REGISTRY_URL || 'localhost' }}/${{ env.IMAGE_NAME }}-ui:latest
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Update latest tags
+    - name: Build summary
       run: |
-        docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-api:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-api:latest
-        docker tag ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-ui:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-ui:latest
-        docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-api:latest
-        docker push ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}-ui:latest
+        echo "## 🐳 Docker Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **API Image**: ${{ secrets.REGISTRY_URL || 'localhost' }}/${{ env.IMAGE_NAME }}-api:latest" >> $GITHUB_STEP_SUMMARY
+        echo "- **UI Image**: ${{ secrets.REGISTRY_URL || 'localhost' }}/${{ env.IMAGE_NAME }}-ui:latest" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ env.PUSH_IMAGES }}" == "true" ]; then
+          echo "- **Status**: ✅ Images pushed to registry" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **Status**: ⚠️ Images built locally only (registry not configured)" >> $GITHUB_STEP_SUMMARY
+        fi
 
   deploy:
     runs-on: ubuntu-latest
@@ -163,7 +187,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Check deployment configuration
+      run: |
+        if [ -z "${{ secrets.SSH_HOST }}" ] || [ -z "${{ secrets.SSH_USER }}" ] || [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+          echo "⚠️  SSH deployment secrets are not configured."
+          echo "To enable server deployment, set these secrets:"
+          echo "  - SSH_HOST (your server IP/domain)"
+          echo "  - SSH_USER (SSH username)"
+          echo "  - SSH_PRIVATE_KEY (SSH private key)"
+          echo "  - GROQ_API_KEY (your Groq API key)"
+          echo "Setting DEPLOY_TO_SERVER=false"
+          echo "DEPLOY_TO_SERVER=false" >> $GITHUB_ENV
+        else
+          echo "✅ SSH deployment configured"
+          echo "DEPLOY_TO_SERVER=true" >> $GITHUB_ENV
+        fi
+
     - name: Deploy to Server
+      if: env.DEPLOY_TO_SERVER == 'true'
       uses: appleboy/ssh-action@v1.0.0
       with:
         host: ${{ secrets.SSH_HOST }}
@@ -180,8 +221,15 @@ jobs:
           mkdir -p /opt/textcraft
           cd /opt/textcraft
           
+          # Check if registry is configured
+          if [ -z "$REGISTRY_URL" ]; then
+            echo "⚠️  No registry configured. Cannot pull images."
+            echo "Please set REGISTRY_URL secret to enable deployment."
+            exit 1
+          fi
+          
           # Pull latest images
-          echo "Pulling latest images..."
+          echo "Pulling latest images from $REGISTRY_URL..."
           docker pull $REGISTRY_URL/$IMAGE_NAME-api:latest
           docker pull $REGISTRY_URL/$IMAGE_NAME-ui:latest
           
@@ -243,6 +291,19 @@ jobs:
           echo "🚀 Deployment completed successfully!"
           echo "API: http://${{ secrets.SSH_HOST }}:8080"
           echo "UI: http://${{ secrets.SSH_HOST }}:3000"
+
+    - name: Deployment summary
+      if: always()
+      run: |
+        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ env.DEPLOY_TO_SERVER }}" == "true" ]; then
+          echo "- **Status**: ✅ Deployed to server" >> $GITHUB_STEP_SUMMARY
+          echo "- **API**: http://${{ secrets.SSH_HOST }}:8080" >> $GITHUB_STEP_SUMMARY
+          echo "- **UI**: http://${{ secrets.SSH_HOST }}:3000" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **Status**: ⚠️ Deployment skipped (SSH secrets not configured)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Reason**: Missing SSH_HOST, SSH_USER, or SSH_PRIVATE_KEY secrets" >> $GITHUB_STEP_SUMMARY
+        fi
 
   notify:
     runs-on: ubuntu-latest
