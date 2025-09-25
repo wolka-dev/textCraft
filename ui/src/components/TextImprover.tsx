@@ -226,15 +226,16 @@ export const TextImprover = () => {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="w-full max-w-6xl mx-auto space-y-6">
+      <div className="w-full max-w-6xl mx-auto space-y-4 sm:space-y-6">
         {/* Controls */}
-        <Card className="p-6 bg-gradient-card shadow-soft border-0">
-          <div className="space-y-6">
+        <Card className="p-4 sm:p-6 bg-gradient-card shadow-soft border-0">
+          <div className="space-y-4 sm:space-y-6">
             {/* Preferences Saved Indicator */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Preferences are automatically saved</span>
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                <span className="hidden sm:inline">Preferences are automatically saved</span>
+                <span className="sm:hidden">Auto-saved</span>
               </div>
             </div>
             {/* Writing Style Section */}
@@ -243,7 +244,7 @@ export const TextImprover = () => {
                 <Sparkles className="h-4 w-4 text-primary" />
                 Writing Style
               </label>
-              <div className="grid grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
                 {styles.map((style) => {
                   const IconComponent = style.icon;
                   return (
@@ -251,7 +252,7 @@ export const TextImprover = () => {
                       <TooltipTrigger asChild>
                         <button
                           onClick={() => setSelectedStyle(style.value)}
-                          className={`flex items-center gap-2 p-2 rounded-lg border transition-all duration-200 cursor-pointer group ${
+                          className={`flex items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border transition-all duration-200 cursor-pointer group ${
                             selectedStyle === style.value 
                               ? 'bg-primary/10 border-primary/50 shadow-sm' 
                               : 'bg-background/30 border-border/50 hover:border-primary/30 hover:bg-background/50'
@@ -262,9 +263,9 @@ export const TextImprover = () => {
                               ? 'bg-primary text-primary-foreground' 
                               : 'bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary'
                           }`}>
-                            <IconComponent className="h-3 w-3" />
+                            <IconComponent className="h-3 w-3 sm:h-4 sm:w-4" />
                           </div>
-                          <span className="font-medium text-foreground group-hover:text-primary transition-colors text-xs">{style.label}</span>
+                          <span className="font-medium text-foreground group-hover:text-primary transition-colors text-xs sm:text-sm truncate">{style.label}</span>
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -277,14 +278,14 @@ export const TextImprover = () => {
             </div>
 
             {/* Language and Instructions Row */}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-3">
                 <label className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Languages className="h-4 w-4 text-primary" />
                   Output Language
                 </label>
                 <div className="space-y-2">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Select 
                       value={selectedLanguage} 
                       onValueChange={setSelectedLanguage}
@@ -298,8 +299,8 @@ export const TextImprover = () => {
                         <SelectValue>
                           {currentLanguage && (
                             <div className="flex items-center gap-2">
-                              <span className="text-lg">{currentLanguage.flag}</span>
-                              <span>{currentLanguage.label}</span>
+                              <span className="text-base sm:text-lg">{currentLanguage.flag}</span>
+                              <span className="text-sm sm:text-base">{currentLanguage.label}</span>
                             </div>
                           )}
                         </SelectValue>
@@ -308,8 +309,8 @@ export const TextImprover = () => {
                         {languages.map((language) => (
                           <SelectItem key={language.value} value={language.value}>
                             <div className="flex items-center gap-2">
-                              <span className="text-lg">{language.flag}</span>
-                              <span>{language.label}</span>
+                              <span className="text-base sm:text-lg">{language.flag}</span>
+                              <span className="text-sm sm:text-base">{language.label}</span>
                             </div>
                           </SelectItem>
                         ))}
@@ -359,21 +360,21 @@ export const TextImprover = () => {
             </div>
              
             {/* Platform and Action Buttons Row */}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               {/* Platform Section */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
                 <label className="text-sm font-medium text-foreground flex items-center gap-2 whitespace-nowrap">
                   <Target className="h-4 w-4 text-primary" />
                   Platform:
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {platforms.map((platform) => {
                     const IconComponent = platform.icon;
                     return (
                       <button
                         key={platform.value}
                         onClick={() => setSelectedPlatform(platform.value)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 cursor-pointer group ${
+                        className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border transition-all duration-200 cursor-pointer group ${
                           selectedPlatform === platform.value 
                             ? 'bg-primary/10 border-primary/50 shadow-sm' 
                             : 'bg-background/30 border-border/50 hover:border-primary/30 hover:bg-background/50'
@@ -384,9 +385,9 @@ export const TextImprover = () => {
                             ? 'bg-primary text-primary-foreground' 
                             : 'bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary'
                         }`}>
-                          <IconComponent className="h-3 w-3" />
+                          <IconComponent className="h-3 w-3 sm:h-4 sm:w-4" />
                         </div>
-                        <span className="font-medium text-foreground group-hover:text-primary transition-colors text-xs">{platform.label}</span>
+                        <span className="font-medium text-foreground group-hover:text-primary transition-colors text-xs sm:text-sm truncate">{platform.label}</span>
                       </button>
                     );
                   })}
@@ -398,51 +399,57 @@ export const TextImprover = () => {
                 {backendConnected === null && (
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <Loader2 className="h-3 w-3 animate-spin" />
-                    <span className="text-xs">Checking connection...</span>
+                    <span className="text-xs hidden sm:inline">Checking connection...</span>
+                    <span className="text-xs sm:hidden">Checking...</span>
                   </div>
                 )}
                 {backendConnected === true && (
                   <div className="flex items-center gap-1 text-green-600">
                     <Check className="h-3 w-3" />
-                    <span className="text-xs">Backend connected</span>
+                    <span className="text-xs hidden sm:inline">Backend connected</span>
+                    <span className="text-xs sm:hidden">Connected</span>
                   </div>
                 )}
                 {backendConnected === false && (
                   <div className="flex items-center gap-1 text-red-600">
                     <AlertCircle className="h-3 w-3" />
-                    <span className="text-xs">Backend offline</span>
+                    <span className="text-xs hidden sm:inline">Backend offline</span>
+                    <span className="text-xs sm:hidden">Offline</span>
                   </div>
                 )}
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-2 ml-auto">
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
                 <Button 
                   onClick={handleImproveText} 
                   disabled={isProcessing || !inputText.trim() || !selectedStyle || !backendConnected}
-                  className="bg-gradient-primary hover:shadow-medium transition-smooth"
+                  className="bg-gradient-primary hover:shadow-medium transition-smooth w-full sm:w-auto"
                   size="default"
                 >
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
+                      <span className="hidden sm:inline">Processing...</span>
+                      <span className="sm:hidden">Processing</span>
                     </>
                   ) : (
                     <>
                       <Zap className="h-4 w-4 mr-2" />
-                      Improve Text
+                      <span className="hidden sm:inline">Improve Text</span>
+                      <span className="sm:hidden">Improve</span>
                     </>
                   )}
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={clearPreferences}
-                  className="hover:bg-muted/50 transition-smooth"
+                  className="hover:bg-muted/50 transition-smooth w-full sm:w-auto"
                   disabled={isProcessing}
                 >
                   <RotateCcw className="h-4 w-4 mr-2" />
-                  Reset Preferences
+                  <span className="hidden sm:inline">Reset Preferences</span>
+                  <span className="sm:hidden">Reset</span>
                 </Button>
 
               </div>
@@ -452,14 +459,15 @@ export const TextImprover = () => {
         </Card>
 
         {/* Text Areas */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Input */}
           <Card className="p-0 bg-gradient-card shadow-soft border-0 overflow-hidden group">
-            <div className="p-4 bg-muted/30 border-b border-border/50 flex items-center justify-between">
+            <div className="p-3 sm:p-4 bg-muted/30 border-b border-border/50 flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-foreground flex items-center gap-2">
                   <MessageSquare className="h-4 w-4" />
-                  Original Text
+                  <span className="hidden sm:inline">Original Text</span>
+                  <span className="sm:hidden">Original</span>
                 </h3>
               </div>
               <div className="flex items-center gap-2">
@@ -481,22 +489,22 @@ export const TextImprover = () => {
                 )}
               </div>
             </div>
-            <div className="p-4 relative">
+            <div className="p-3 sm:p-4 relative">
               <Textarea
                 ref={inputRef}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onPaste={handlePaste}
                 placeholder="Paste or type your text here. For example: 'Hi, I hope you are doing well. I wanted to ask if we can meet tomorrow to discuss the project.'"
-                className="min-h-[300px] border-0 bg-transparent resize-none focus-visible:ring-0 text-foreground placeholder:text-muted-foreground transition-all duration-200"
+                className="min-h-[200px] sm:min-h-[300px] border-0 bg-transparent resize-none focus-visible:ring-0 text-foreground placeholder:text-muted-foreground transition-all duration-200 text-sm sm:text-base"
                 onFocus={(e) => e.target.style.transform = 'scale(1.01)'}
                 onBlur={(e) => e.target.style.transform = 'scale(1)'}
               />
               {!inputText && (
-                <div className="absolute inset-4 pointer-events-none flex items-center justify-center">
+                <div className="absolute inset-3 sm:inset-4 pointer-events-none flex items-center justify-center">
                   <div className="text-center text-muted-foreground/50">
-                    <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">Start typing to see magic happen</p>
+                    <MessageSquare className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 opacity-30" />
+                    <p className="text-xs sm:text-sm">Start typing to see magic happen</p>
                   </div>
                 </div>
               )}
@@ -505,11 +513,12 @@ export const TextImprover = () => {
 
           {/* Output */}
           <Card className="p-0 bg-gradient-card shadow-soft border-0 overflow-hidden group">
-            <div className="p-4 bg-primary/5 border-b border-border/50 flex items-center justify-between">
+            <div className="p-3 sm:p-4 bg-primary/5 border-b border-border/50 flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-foreground flex items-center gap-2">
                   <Sparkles className="h-4 w-4" />
-                  Improved Text
+                  <span className="hidden sm:inline">Improved Text</span>
+                  <span className="sm:hidden">Improved</span>
                   {isOutputEdited && (
                     <Badge variant="outline" className="text-xs text-orange-600 border-orange-200 bg-orange-50">
                       Edited
@@ -528,6 +537,7 @@ export const TextImprover = () => {
                       variant="ghost"
                       onClick={handleCopy}
                       className="h-6 w-6 p-0"
+                      title="Copy to clipboard"
                     >
                       {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
                     </Button>
@@ -544,27 +554,27 @@ export const TextImprover = () => {
                 )}
               </div>
             </div>
-            <div className="p-4 relative">
+            <div className="p-3 sm:p-4 relative">
               <Textarea
                 ref={outputRef}
                 value={outputText}
                 onChange={handleOutputTextChange}
                 placeholder="Your improved text will appear here after processing..."
-                className="min-h-[300px] border-0 bg-transparent resize-none focus-visible:ring-0 text-foreground placeholder:text-muted-foreground transition-all duration-200"
+                className="min-h-[200px] sm:min-h-[300px] border-0 bg-transparent resize-none focus-visible:ring-0 text-foreground placeholder:text-muted-foreground transition-all duration-200 text-sm sm:text-base"
               />
               {isProcessing && (
-                <div className="absolute inset-4 pointer-events-none flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
+                <div className="absolute inset-3 sm:inset-4 pointer-events-none flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
                   <div className="text-center">
-                    <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Improving your text...</p>
+                    <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 animate-spin text-primary" />
+                    <p className="text-xs sm:text-sm text-muted-foreground">Improving your text...</p>
                   </div>
                 </div>
               )}
               {!outputText && !isProcessing && (
-                <div className="absolute inset-4 pointer-events-none flex items-center justify-center">
+                <div className="absolute inset-3 sm:inset-4 pointer-events-none flex items-center justify-center">
                   <div className="text-center text-muted-foreground/50">
-                    <Sparkles className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">Enhanced text will appear here</p>
+                    <Sparkles className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 opacity-30" />
+                    <p className="text-xs sm:text-sm">Enhanced text will appear here</p>
                   </div>
                 </div>
               )}

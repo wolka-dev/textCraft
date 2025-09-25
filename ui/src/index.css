@@ -119,4 +119,37 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Mobile-specific improvements */
+  @media (max-width: 768px) {
+    html {
+      /* Prevent zoom on input focus on iOS */
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Improve touch targets */
+    button, [role="button"], input[type="button"], input[type="submit"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Better scrolling on mobile */
+    .overflow-auto, .overflow-y-auto, .overflow-x-auto {
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Prevent horizontal scroll */
+    body {
+      overflow-x: hidden;
+    }
+  }
+
+  /* Ensure proper viewport handling */
+  @supports (-webkit-touch-callout: none) {
+    /* iOS specific fixes */
+    .min-h-screen {
+      min-height: -webkit-fill-available;
+    }
+  }
 }
