@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, AlertCircle } from 'lucide-react';
+import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, AlertCircle, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useUserPreferences } from '@/hooks/use-local-storage';
 import { apiService, TextImprovementRequest } from '@/services/api';
@@ -201,6 +201,7 @@ export const TextImprover = () => {
       inputRef.current?.focus();
     }
   };
+
 
   const handleOutputTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setOutputText(e.target.value);
@@ -423,23 +424,14 @@ export const TextImprover = () => {
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={handleClear}
+                  onClick={clearPreferences}
                   className="hover:bg-muted/50 transition-smooth"
                   disabled={isProcessing}
                 >
                   <RotateCcw className="h-4 w-4 mr-2" />
-                  Clear
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={clearPreferences}
-                  className="hover:bg-muted/50 transition-smooth"
-                  disabled={isProcessing}
-                  title="Reset all saved preferences to defaults"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
                   Reset Preferences
                 </Button>
+
               </div>
             </div>
 
@@ -457,11 +449,24 @@ export const TextImprover = () => {
                   Original Text
                 </h3>
               </div>
-              {inputText && (
-                <Badge variant="secondary" className="text-xs">
-                  {wordCount} words
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                {inputText && (
+                  <Badge variant="secondary" className="text-xs">
+                    {wordCount} words
+                  </Badge>
+                )}
+                {inputText && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleClear}
+                    className="h-6 w-6 p-0"
+                    title="Clear input text"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
             </div>
             <div className="p-4 relative">
               <Textarea
