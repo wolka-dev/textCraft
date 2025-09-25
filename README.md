@@ -23,7 +23,7 @@ A simple text improvement tool with AI-powered enhancements. Improve your writin
    ```bash
    docker-compose up
    ```
-4. Open http://localhost:3000
+4. Open http://localhost:33000
 
 ### Manual Setup
 

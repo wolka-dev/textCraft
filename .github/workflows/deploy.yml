@@ -48,13 +48,13 @@ jobs:
               --restart=always \
               --name textcraft-api \
               --network root_npm-network \
-              -p 38080:8080 \
+              -p 38080:38080 \
               -e GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
-              -e PORT=8080 \
+              -e PORT=38080 \
               ${{ secrets.REGISTRY_URL }}/textcraft-api:latest
             docker run -d \
               --restart=always \
               --name textcraft-ui \
               --network root_npm-network \
-              -p 33000:80 \
+              -p 33000:33000 \
               ${{ secrets.REGISTRY_URL }}/textcraft-ui:latest

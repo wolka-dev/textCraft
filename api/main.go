@@ -397,7 +397,7 @@ func main() {
 	})
 
 	// Start server
-	port := "8080"
+	port := "38080"
 	fmt.Printf("🚀 Starting TextCraft API server on port %s\n", port)
 	fmt.Printf("📝 Text improvement endpoint: http://localhost:%s/api/improve-text\n", port)
 	fmt.Printf("🏥 Health check: http://localhost:%s/health\n", port)

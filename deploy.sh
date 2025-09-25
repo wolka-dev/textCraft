@@ -93,7 +93,7 @@ else
 fi
 
 # Check UI health
-if curl -f http://localhost:3000 > /dev/null 2>&1; then
+if curl -f http://localhost:33000 > /dev/null 2>&1; then
     print_success "UI is healthy"
 else
     print_error "UI health check failed"
@@ -112,5 +112,5 @@ docker-compose -f docker-compose.prod.yml ps
 print_success "Deployment completed successfully!"
 print_status "Application URLs:"
 print_status "  API: http://$(hostname -I | awk '{print $1}'):38080"
-print_status "  UI: http://$(hostname -I | awk '{print $1}'):3000"
+print_status "  UI: http://$(hostname -I | awk '{print $1}'):33000"
 print_status "  Health Check: http://$(hostname -I | awk '{print $1}'):38080/health"

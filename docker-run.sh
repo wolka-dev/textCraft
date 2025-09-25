@@ -65,9 +65,9 @@ start_dev() {
     
     print_success "Development environment started!"
     echo ""
-    echo "🌐 Frontend: http://localhost:3000"
-    echo "🔧 Backend API: http://localhost:8080"
-    echo "📊 Health Check: http://localhost:8080/health"
+    echo "🌐 Frontend: http://localhost:33000"
+    echo "🔧 Backend API: http://localhost:38080"
+    echo "📊 Health Check: http://localhost:38080/health"
     echo ""
     print_status "Use 'docker-compose -f docker-compose.dev.yml logs -f' to view logs"
 }
@@ -81,9 +81,9 @@ start_prod() {
     
     print_success "Production environment started!"
     echo ""
-    echo "🌐 Frontend: http://localhost:3000"
-    echo "🔧 Backend API: http://localhost:8080"
-    echo "📊 Health Check: http://localhost:8080/health"
+    echo "🌐 Frontend: http://localhost:33000"
+    echo "🔧 Backend API: http://localhost:38080"
+    echo "📊 Health Check: http://localhost:38080/health"
     echo ""
     print_status "Use 'docker-compose logs -f' to view logs"
 }

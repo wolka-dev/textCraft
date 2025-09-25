@@ -1,5 +1,5 @@
 // API service for communicating with the backend
-const API_BASE_URL = "https://tc-api.wolka.dev";
+const API_BASE_URL = "http://textcraft-api:38080"; // Localhost for production
 
 export interface TextImprovementRequest {
   text: string;

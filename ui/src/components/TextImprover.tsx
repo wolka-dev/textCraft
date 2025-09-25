@@ -178,10 +178,6 @@ export const TextImprover = () => {
 
   const handleClear = () => {
     setInputText('');
-    setOutputText('');
-    clearPreferences(); // This will reset all stored preferences
-    setCopied(false);
-    setIsOutputEdited(false);
     inputRef.current?.focus();
   };
 
