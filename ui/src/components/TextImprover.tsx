@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, X, ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, X, ChevronDown, ChevronUp, Settings, Clipboard } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useUserPreferences } from '@/hooks/use-local-storage';
 import { apiService, TextImprovementRequest } from '@/services/api';
@@ -132,6 +132,18 @@ export const TextImprover = () => {
   const handleClear = () => {
     setInputText('');
     inputRef.current?.focus();
+  };
+
+  const handlePasteClick = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text.trim()) {
+        setInputText(text);
+        inputRef.current?.focus();
+      }
+    } catch (error) {
+      console.error('Failed to read clipboard:', error);
+    }
   };
 
   const handleCopy = async () => {
@@ -344,12 +356,21 @@ export const TextImprover = () => {
                   <Wand2 className="h-4 w-4 text-primary" />
                   Extra Instructions
                 </label>
-                <Input
-                  value={extraPrompt}
-                  onChange={(e) => setExtraPrompt(e.target.value)}
-                  placeholder="Add specific instructions (e.g., 'make it shorter', 'add emojis')..."
-                  className="bg-background/50 border-border/50 hover:border-primary/30 transition-smooth"
-                />
+                <div className="space-y-2">
+                  <Input
+                    value={extraPrompt}
+                    onChange={(e) => setExtraPrompt(e.target.value)}
+                    placeholder="Add specific instructions (e.g., 'make it shorter', 'add emojis')..."
+                    className="bg-background/50 border-border/50 hover:border-primary/30 transition-smooth"
+                    maxLength={200}
+                  />
+                  <div className="flex justify-between items-center text-xs text-muted-foreground">
+                    <span>Keep instructions clear and concise</span>
+                    <span className={extraPrompt.length > 150 ? 'text-orange-500' : ''}>
+                      {extraPrompt.length}/200
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
              
@@ -477,22 +498,42 @@ export const TextImprover = () => {
                 </div>
               )}
               
-              {/* Floating Improve Button - Only on mobile when text exists */}
-              {isMobile && inputText.trim() && selectedStyle && (
+              {/* Floating Action Button - Only on mobile */}
+              {isMobile && selectedStyle && (
                 <div className="absolute bottom-4 right-4 pointer-events-auto">
-                  <Button
-                    onClick={handleImproveText}
-                    disabled={isProcessing}
-                    size="sm"
-                    className="bg-gradient-primary hover:shadow-large transition-all duration-200 h-10 w-10 rounded-full shadow-medium hover:scale-105"
-                    title="Improve text"
-                  >
-                    {isProcessing ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Zap className="h-4 w-4" />
-                    )}
-                  </Button>
+                  {inputText.trim() ? (
+                    // Improve Button when text exists
+                    <Button
+                      onClick={handleImproveText}
+                      disabled={isProcessing}
+                      size="sm"
+                      className="bg-gradient-primary hover:shadow-large transition-all duration-200 h-10 px-4 rounded-full shadow-medium hover:scale-105"
+                      title="Improve text"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          <span className="text-sm font-medium">Improving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="h-4 w-4 mr-2" />
+                          <span className="text-sm font-medium">Improve</span>
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    // Paste Button when field is empty
+                    <Button
+                      onClick={handlePasteClick}
+                      size="sm"
+                      className="bg-gradient-primary hover:shadow-large transition-all duration-200 h-10 px-4 rounded-full shadow-medium hover:scale-105"
+                      title="Paste from clipboard"
+                    >
+                      <Clipboard className="h-4 w-4 mr-2" />
+                      <span className="text-sm font-medium">Paste</span>
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
