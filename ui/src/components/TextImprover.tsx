@@ -208,6 +208,19 @@ export const TextImprover = () => {
     setIsOutputEdited(true);
   };
 
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    // Get the pasted text from clipboard
+    const pastedText = e.clipboardData.getData('text');
+    
+    // Let the default paste behavior happen first
+    setTimeout(async () => {
+      // Check if we have pasted text and a selected style
+      if (pastedText.trim() && selectedStyle && !isProcessing && backendConnected) {
+        await handleImproveText();
+      }
+    }, 100); // Small delay to ensure the paste operation completes
+  };
+
   // Get current selected language for display
   const currentLanguage = languages.find(l => l.value === selectedLanguage);
 
@@ -473,6 +486,7 @@ export const TextImprover = () => {
                 ref={inputRef}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                onPaste={handlePaste}
                 placeholder="Paste or type your text here. For example: 'Hi, I hope you are doing well. I wanted to ask if we can meet tomorrow to discuss the project.'"
                 className="min-h-[300px] border-0 bg-transparent resize-none focus-visible:ring-0 text-foreground placeholder:text-muted-foreground transition-all duration-200"
                 onFocus={(e) => e.target.style.transform = 'scale(1.01)'}
