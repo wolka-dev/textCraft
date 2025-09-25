@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, X, ChevronDown, ChevronUp, Settings } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { toast } from '@/hooks/use-toast';
 import { useUserPreferences } from '@/hooks/use-local-storage';
 import { apiService, TextImprovementRequest } from '@/services/api';
 
@@ -72,12 +71,6 @@ export const TextImprover = () => {
     }
   }, []);
 
-  // Auto-expand controls on mobile when user starts interacting
-  useEffect(() => {
-    if (isMobile && (selectedStyle || customLanguage.trim() || extraPrompt.trim())) {
-      setIsControlsExpanded(true);
-    }
-  }, [isMobile, selectedStyle, customLanguage, extraPrompt]);
 
 
   // Update word count
@@ -88,19 +81,11 @@ export const TextImprover = () => {
 
   const handleImproveText = useCallback(async () => {
     if (!inputText.trim()) {
-      toast({
-        title: "Please enter some text",
-        description: "Add text to the input area to get started.",
-      });
       inputRef.current?.focus();
       return;
     }
 
     if (!selectedStyle) {
-      toast({
-        title: "Please select a style",
-        description: "Choose how you'd like your text to be improved.",
-      });
       return;
     }
 
@@ -122,18 +107,8 @@ export const TextImprover = () => {
       setOutputText(response.improvedText);
       setIsOutputEdited(false); // Reset edit state when new text is generated
       
-      toast({
-        title: "Text improved successfully!",
-        description: "Your text has been sent to the backend and processed.",
-      });
-      
     } catch (error) {
       console.error('Error improving text:', error);
-      toast({
-        title: "Error processing text",
-        description: "There was an error communicating with the backend. Please try again.",
-        variant: "destructive",
-      });
     } finally {
       setIsProcessing(false);
     }
@@ -163,10 +138,6 @@ export const TextImprover = () => {
     if (outputText) {
       await navigator.clipboard.writeText(outputText);
       setCopied(true);
-      toast({
-        title: "Copied to clipboard!",
-        description: "The improved text has been copied to your clipboard.",
-      });
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -238,33 +209,13 @@ export const TextImprover = () => {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {/* Quick Action Button */}
-                  {inputText.trim() && selectedStyle && (
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent expanding/collapsing when clicking button
-                        handleImproveText();
-                      }}
-                      disabled={isProcessing}
-                      size="sm"
-                      className="bg-gradient-primary hover:shadow-medium transition-smooth h-8 px-3"
-                    >
-                      {isProcessing ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <Zap className="h-3 w-3" />
-                      )}
-                    </Button>
+                {/* Expand/Collapse Indicator */}
+                <div className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted/50 transition-colors">
+                  {isControlsExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   )}
-                  {/* Expand/Collapse Indicator */}
-                  <div className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted/50 transition-colors">
-                    {isControlsExpanded ? (
-                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
@@ -468,7 +419,7 @@ export const TextImprover = () => {
                 >
                   <RotateCcw className="h-4 w-4 mr-2" />
                   <span className="hidden sm:inline">Reset Preferences</span>
-                  <span className="sm:hidden">Reset</span>
+                  <span className="sm:hidden">Reset Settings</span>
                 </Button>
 
               </div>
@@ -481,7 +432,7 @@ export const TextImprover = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Input */}
           <Card className="p-0 bg-gradient-card shadow-soft border-0 overflow-hidden group">
-            <div className="p-3 sm:p-4 bg-muted/30 border-b border-border/50 flex items-center justify-between">
+            <div className="p-3 sm:p-4 bg-muted/30 border-b border-border/50 flex items-center justify-between h-[52px]">
               <div>
                 <h3 className="font-semibold text-foreground flex items-center gap-2">
                   <MessageSquare className="h-4 w-4" />
@@ -489,7 +440,7 @@ export const TextImprover = () => {
                   <span className="sm:hidden">Original</span>
                 </h3>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 h-[24px]">
                 {inputText && (
                   <Badge variant="secondary" className="text-xs">
                     {wordCount} words
@@ -516,8 +467,6 @@ export const TextImprover = () => {
                 onPaste={handlePaste}
                 placeholder="Paste or type your text here. For example: 'Hi, I hope you are doing well. I wanted to ask if we can meet tomorrow to discuss the project.'"
                 className="min-h-[200px] sm:min-h-[300px] border-0 bg-transparent resize-none focus-visible:ring-0 text-foreground placeholder:text-muted-foreground transition-all duration-200 text-sm sm:text-base"
-                onFocus={(e) => e.target.style.transform = 'scale(1.01)'}
-                onBlur={(e) => e.target.style.transform = 'scale(1)'}
               />
               {!inputText && (
                 <div className="absolute inset-3 sm:inset-4 pointer-events-none flex items-center justify-center">
@@ -527,12 +476,31 @@ export const TextImprover = () => {
                   </div>
                 </div>
               )}
+              
+              {/* Floating Improve Button - Only on mobile when text exists */}
+              {isMobile && inputText.trim() && selectedStyle && (
+                <div className="absolute bottom-4 right-4 pointer-events-auto">
+                  <Button
+                    onClick={handleImproveText}
+                    disabled={isProcessing}
+                    size="sm"
+                    className="bg-gradient-primary hover:shadow-large transition-all duration-200 h-10 w-10 rounded-full shadow-medium hover:scale-105"
+                    title="Improve text"
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Zap className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           </Card>
 
           {/* Output */}
           <Card className="p-0 bg-gradient-card shadow-soft border-0 overflow-hidden group">
-            <div className="p-3 sm:p-4 bg-primary/5 border-b border-border/50 flex items-center justify-between">
+            <div className="p-3 sm:p-4 bg-primary/5 border-b border-border/50 flex items-center justify-between h-[52px]">
               <div>
                 <h3 className="font-semibold text-foreground flex items-center gap-2">
                   <Sparkles className="h-4 w-4" />
@@ -545,7 +513,7 @@ export const TextImprover = () => {
                   )}
                 </h3>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 h-[24px]">
                 {outputText && (
                   <>
                     <Badge variant="secondary" className="text-xs">
