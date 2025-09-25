@@ -212,7 +212,7 @@ func processWithGroq(request TextImprovementRequest) (string, error) {
 		Messages: []GroqMessage{
 			{
 				Role:    "system",
-				Content: "You are a professional text improvement assistant. Improve the given text according to the specified style, platform, and language requirements. Provide only the improved text without any explanations or formatting.",
+				Content: "Improve the text for clarity, grammar, and flow with minimal edits. Keep it faithful to the original meaning and tone. Output only the improved text as plain text, without quotes, markdown, lists, or explanations. If a style, platform, or language is specified, adapt accordingly.",
 			},
 			{
 				Role:    "user",
