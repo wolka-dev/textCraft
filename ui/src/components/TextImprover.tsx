@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, AlertCircle, X } from 'lucide-react';
+import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, X, ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/hooks/use-toast';
 import { useUserPreferences } from '@/hooks/use-local-storage';
 import { apiService, TextImprovementRequest } from '@/services/api';
@@ -42,9 +43,10 @@ export const TextImprover = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [wordCount, setWordCount] = useState(0);
-  const [backendConnected, setBackendConnected] = useState<boolean | null>(null);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isOutputEdited, setIsOutputEdited] = useState(false);
+  const [isControlsExpanded, setIsControlsExpanded] = useState(false);
+  
+  const isMobile = useIsMobile();
 
   // Use localStorage for persistent user preferences
   const {
@@ -70,26 +72,13 @@ export const TextImprover = () => {
     }
   }, []);
 
-  // Check backend connection on mount
+  // Auto-expand controls on mobile when user starts interacting
   useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        const connected = await apiService.testConnection();
-        setBackendConnected(connected);
-        if (connected) {
-          setConnectionError(null);
-        } else {
-          setConnectionError('Backend server is not running');
-        }
-      } catch (error) {
-        setBackendConnected(false);
-        setConnectionError('Failed to connect to backend server');
-        console.error('Backend connection error:', error);
-      }
-    };
+    if (isMobile && (selectedStyle || customLanguage.trim() || extraPrompt.trim())) {
+      setIsControlsExpanded(true);
+    }
+  }, [isMobile, selectedStyle, customLanguage, extraPrompt]);
 
-    checkConnection();
-  }, []);
 
   // Update word count
   useEffect(() => {
@@ -115,17 +104,7 @@ export const TextImprover = () => {
       return;
     }
 
-    if (!backendConnected) {
-      toast({
-        title: "Backend not available",
-        description: connectionError || "Please ensure the backend server is running.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsProcessing(true);
-    setConnectionError(null);
     
     try {
       const request: TextImprovementRequest = {
@@ -150,7 +129,6 @@ export const TextImprover = () => {
       
     } catch (error) {
       console.error('Error improving text:', error);
-      setConnectionError('Failed to process text');
       toast({
         title: "Error processing text",
         description: "There was an error communicating with the backend. Please try again.",
@@ -159,7 +137,7 @@ export const TextImprover = () => {
     } finally {
       setIsProcessing(false);
     }
-  }, [inputText, selectedStyle, selectedPlatform, customLanguage, selectedLanguage, extraPrompt, backendConnected, connectionError]);
+  }, [inputText, selectedStyle, selectedPlatform, customLanguage, selectedLanguage, extraPrompt]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -215,7 +193,7 @@ export const TextImprover = () => {
     // Let the default paste behavior happen first
     setTimeout(async () => {
       // Check if we have pasted text and a selected style
-      if (pastedText.trim() && selectedStyle && !isProcessing && backendConnected) {
+      if (pastedText.trim() && selectedStyle && !isProcessing) {
         await handleImproveText();
       }
     }, 100); // Small delay to ensure the paste operation completes
@@ -223,21 +201,86 @@ export const TextImprover = () => {
 
   // Get current selected language for display
   const currentLanguage = languages.find(l => l.value === selectedLanguage);
+  
+  // Get current selections for summary
+  const currentStyle = styles.find(s => s.value === selectedStyle);
+  const currentPlatform = platforms.find(p => p.value === selectedPlatform);
+  
+  // Create summary text for mobile
+  const getControlsSummary = () => {
+    const parts = [];
+    if (currentStyle) parts.push(currentStyle.label);
+    if (currentLanguage) parts.push(currentLanguage.flag + ' ' + currentLanguage.label);
+    if (currentPlatform) parts.push(currentPlatform.label);
+    if (customLanguage.trim()) parts.push(`Custom: ${customLanguage}`);
+    if (extraPrompt.trim()) parts.push('+ Extra');
+    return parts.join(' • ');
+  };
 
   return (
     <TooltipProvider delayDuration={0}>
       <div className="w-full max-w-6xl mx-auto space-y-4 sm:space-y-6">
         {/* Controls */}
-        <Card className="p-4 sm:p-6 bg-gradient-card shadow-soft border-0">
-          <div className="space-y-4 sm:space-y-6">
-            {/* Preferences Saved Indicator */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
-                <span className="hidden sm:inline">Preferences are automatically saved</span>
-                <span className="sm:hidden">Auto-saved</span>
+        <Card className="bg-gradient-card shadow-soft border-0">
+          {/* Mobile Summary Header */}
+          {isMobile && (
+            <div 
+              className="p-4 border-b border-border/50 cursor-pointer hover:bg-muted/30 transition-colors"
+              onClick={() => setIsControlsExpanded(!isControlsExpanded)}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Settings className="h-4 w-4 text-primary flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-foreground text-sm">Settings</h3>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {getControlsSummary() || 'Configure your preferences'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* Quick Action Button */}
+                  {inputText.trim() && selectedStyle && (
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent expanding/collapsing when clicking button
+                        handleImproveText();
+                      }}
+                      disabled={isProcessing}
+                      size="sm"
+                      className="bg-gradient-primary hover:shadow-medium transition-smooth h-8 px-3"
+                    >
+                      {isProcessing ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Zap className="h-3 w-3" />
+                      )}
+                    </Button>
+                  )}
+                  {/* Expand/Collapse Indicator */}
+                  <div className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted/50 transition-colors">
+                    {isControlsExpanded ? (
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
+          )}
+          
+          {/* Controls Content */}
+          <div className={`${isMobile && !isControlsExpanded ? 'hidden' : 'block'} p-4 sm:p-6`}>
+            <div className="space-y-4 sm:space-y-6">
+              {/* Preferences Saved Indicator */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                  <span className="hidden sm:inline">Preferences are automatically saved</span>
+                  <span className="sm:hidden">Auto-saved</span>
+                </div>
+              </div>
             {/* Writing Style Section */}
             <div className="space-y-3">
               <label className="text-sm font-medium text-foreground flex items-center gap-2">
@@ -394,36 +437,12 @@ export const TextImprover = () => {
                 </div>
               </div>
 
-              {/* Backend Status */}
-              <div className="flex items-center gap-2">
-                {backendConnected === null && (
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <span className="text-xs hidden sm:inline">Checking connection...</span>
-                    <span className="text-xs sm:hidden">Checking...</span>
-                  </div>
-                )}
-                {backendConnected === true && (
-                  <div className="flex items-center gap-1 text-green-600">
-                    <Check className="h-3 w-3" />
-                    <span className="text-xs hidden sm:inline">Backend connected</span>
-                    <span className="text-xs sm:hidden">Connected</span>
-                  </div>
-                )}
-                {backendConnected === false && (
-                  <div className="flex items-center gap-1 text-red-600">
-                    <AlertCircle className="h-3 w-3" />
-                    <span className="text-xs hidden sm:inline">Backend offline</span>
-                    <span className="text-xs sm:hidden">Offline</span>
-                  </div>
-                )}
-              </div>
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
                 <Button 
                   onClick={handleImproveText} 
-                  disabled={isProcessing || !inputText.trim() || !selectedStyle || !backendConnected}
+                  disabled={isProcessing || !inputText.trim() || !selectedStyle}
                   className="bg-gradient-primary hover:shadow-medium transition-smooth w-full sm:w-auto"
                   size="default"
                 >
@@ -454,7 +473,7 @@ export const TextImprover = () => {
 
               </div>
             </div>
-
+            </div>
           </div>
         </Card>
 
