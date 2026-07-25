@@ -2,6 +2,8 @@
 
 A simple text improvement tool with AI-powered enhancements. Improve your writing for different platforms and styles.
 
+🔗 Live at [tc.wolka.dev](https://tc.wolka.dev)
+
 ## Features
 
 - ✨ AI-powered text improvement using Groq API
@@ -58,3 +60,7 @@ npm run dev
 - **Backend**: Go, Gorilla Mux
 - **AI**: Groq API with fallback processing
 - **Deployment**: Docker, Docker Compose
+
+## License
+
+MIT — see [LICENSE](LICENSE).
