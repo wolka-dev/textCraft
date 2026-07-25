@@ -5,8 +5,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ArrowRight, Sparkles, Languages, Wand2, Copy, RotateCcw, Check, Loader2, Zap, Target, MessageSquare, CheckCircle, Briefcase, Heart, Coffee, Building, Mail, MessageSquare as SlackIcon, FileText, X, ChevronDown, ChevronUp, Settings, Clipboard } from 'lucide-react';
+import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useUserPreferences } from '@/hooks/use-local-storage';
 import { apiService, TextImprovementRequest } from '@/services/api';
@@ -109,6 +110,7 @@ export const TextImprover = () => {
       
     } catch (error) {
       console.error('Error improving text:', error);
+      toast.error('Failed to improve text. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -201,8 +203,7 @@ export const TextImprover = () => {
   };
 
   return (
-    <TooltipProvider delayDuration={0}>
-      <div className="w-full max-w-6xl mx-auto space-y-4 sm:space-y-6">
+    <div className="w-full max-w-6xl mx-auto space-y-4 sm:space-y-6">
         {/* Controls */}
         <Card className="bg-gradient-card shadow-soft border-0">
           {/* Mobile Summary Header */}
@@ -610,6 +611,5 @@ export const TextImprover = () => {
           </Card>
         </div>
       </div>
-    </TooltipProvider>
   );
 };
