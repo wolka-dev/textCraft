@@ -205,7 +205,7 @@ export const TextImprover = () => {
   return (
     <div className="w-full max-w-6xl mx-auto space-y-4 sm:space-y-6">
         {/* Controls */}
-        <Card className="bg-gradient-card shadow-soft border-0">
+        <Card className="bg-card border border-border shadow-soft">
           {/* Mobile Summary Header */}
           {isMobile && (
             <div 
@@ -453,10 +453,10 @@ export const TextImprover = () => {
         {/* Text Areas */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Input */}
-          <Card className="p-0 bg-gradient-card shadow-soft border-0 overflow-hidden group">
+          <Card className="p-0 bg-card border border-border shadow-soft overflow-hidden group">
             <div className="p-3 sm:p-4 bg-muted/30 border-b border-border/50 flex items-center justify-between h-[52px]">
               <div>
-                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
                   <MessageSquare className="h-4 w-4" />
                   <span className="hidden sm:inline">Original Text</span>
                   <span className="sm:hidden">Original</span>
@@ -541,10 +541,10 @@ export const TextImprover = () => {
           </Card>
 
           {/* Output */}
-          <Card className="p-0 bg-gradient-card shadow-soft border-0 overflow-hidden group">
+          <Card className="p-0 bg-card border border-border shadow-soft overflow-hidden group">
             <div className="p-3 sm:p-4 bg-primary/5 border-b border-border/50 flex items-center justify-between h-[52px]">
               <div>
-                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
                   <Sparkles className="h-4 w-4" />
                   <span className="hidden sm:inline">Improved Text</span>
                   <span className="sm:hidden">Improved</span>

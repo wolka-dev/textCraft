@@ -5,7 +5,7 @@ import { CheckCircle, Sparkles, Zap, Brain, Clock, Shield, ExternalLink } from '
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-background">
+    <div className="min-h-screen bg-background">
       <Header />
       
       {/* Main Tool - First Priority */}
