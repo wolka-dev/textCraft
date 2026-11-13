@@ -55,7 +55,15 @@ type GroqRequest struct {
 	Messages []GroqMessage `json:"messages"`
 	Model    string        `json:"model"`
 	Stream   bool          `json:"stream"`
+	// Reasoning controls, only sent for reasoning models (e.g. openai/gpt-oss-*)
+	ReasoningEffort  string `json:"reasoning_effort,omitempty"`
+	IncludeReasoning *bool  `json:"include_reasoning,omitempty"`
 }
+
+// defaultGroqModel is used when GROQ_MODEL is not set. Groq retires models
+// regularly (see https://console.groq.com/docs/deprecations), so the model can
+// be swapped via the environment without a code change.
+const defaultGroqModel = "openai/gpt-oss-20b"
 
 type GroqMessage struct {
 	Role    string `json:"role"`
@@ -229,9 +237,11 @@ func improveTextHandler(w http.ResponseWriter, r *http.Request) {
 // processText processes text using Groq AI with fallback
 func processText(request TextImprovementRequest) string {
 	// Try Groq first
-	if improvedText, err := processWithGroq(request); err == nil {
+	improvedText, err := processWithGroq(request)
+	if err == nil {
 		return improvedText
 	}
+	log.Printf("groq processing failed, using local fallback: %v", err)
 
 	// Fallback to enhanced local processing
 	return processTextFallback(request)
@@ -249,6 +259,11 @@ func processWithGroq(request TextImprovementRequest) (string, error) {
 
 	prompt := buildPrompt(request)
 
+	model := os.Getenv("GROQ_MODEL")
+	if model == "" {
+		model = defaultGroqModel
+	}
+
 	groqReq := GroqRequest{
 		Messages: []GroqMessage{
 			{
@@ -262,8 +277,16 @@ func processWithGroq(request TextImprovementRequest) (string, error) {
 				Content: prompt,
 			},
 		},
-		Model:  "llama-3.1-8b-instant", // Fast model
+		Model:  model,
 		Stream: false,
+	}
+
+	// gpt-oss models reason before answering; keep that minimal and out of
+	// the response since this is a straightforward rewriting task.
+	if strings.HasPrefix(model, "openai/gpt-oss") {
+		includeReasoning := false
+		groqReq.ReasoningEffort = "low"
+		groqReq.IncludeReasoning = &includeReasoning
 	}
 
 	jsonData, err := json.Marshal(groqReq)
@@ -299,7 +322,12 @@ func processWithGroq(request TextImprovementRequest) (string, error) {
 		return "", fmt.Errorf("no response from Groq")
 	}
 
-	return strings.TrimSpace(groqResp.Choices[0].Message.Content), nil
+	content := strings.TrimSpace(groqResp.Choices[0].Message.Content)
+	if content == "" {
+		return "", fmt.Errorf("empty response from Groq")
+	}
+
+	return content, nil
 }
 
 // buildPrompt creates a prompt for AI models

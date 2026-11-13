@@ -94,6 +94,7 @@ Returns service status — used for container health checks.
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `GROQ_API_KEY` | no | — | Groq API key for AI text processing. Falls back to basic local processing if unset. |
+| `GROQ_MODEL` | no | `openai/gpt-oss-20b` | Groq model ID. Change it here when Groq retires a model ([deprecations](https://console.groq.com/docs/deprecations)). |
 | `ALLOWED_ORIGIN` | no | `https://tc.wolka.dev` | CORS origin the API accepts requests from. |
 
 ## Tech Stack
